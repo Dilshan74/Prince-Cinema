@@ -1,0 +1,958 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Android Layouts Assignment Report</title>
+    <style>
+        :root {
+            color-scheme: light;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: "Segoe UI", Arial, sans-serif;
+            margin: 32px;
+            color: #1e293b;
+            background: #ffffff;
+            line-height: 1.65;
+        }
+
+        h1, h2, h3 {
+            color: #0f172a;
+            margin-top: 0;
+        }
+
+        h2 {
+            margin-bottom: 10px;
+        }
+
+        .cover {
+            border: 2px solid #cbd5e1;
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            background: linear-gradient(135deg, #f8fbff, #fef7ed);
+        }
+
+        .meta p,
+        .intro p,
+        .section p {
+            margin: 8px 0;
+        }
+
+        .tag-row {
+            margin-top: 18px;
+        }
+
+        .tag {
+            display: inline-block;
+            margin-right: 8px;
+            margin-bottom: 8px;
+            padding: 8px 12px;
+            border-radius: 999px;
+            background: #e2e8f0;
+            color: #0f172a;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .section {
+            page-break-before: always;
+            padding-top: 12px;
+        }
+
+        .layout-card {
+            border: 1px solid #dbe4ee;
+            border-radius: 18px;
+            padding: 22px;
+            margin-bottom: 24px;
+            background: #fcfdff;
+        }
+
+        .preview {
+            border: 2px dashed #94a3b8;
+            border-radius: 16px;
+            padding: 14px;
+            margin: 18px 0 22px;
+            background: #f8fafc;
+            text-align: center;
+        }
+
+        .preview img {
+            max-width: 280px;
+            width: 100%;
+            border-radius: 20px;
+            box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+        }
+
+        pre {
+            background: #0f172a;
+            color: #e2e8f0;
+            padding: 18px;
+            border-radius: 14px;
+            overflow-x: auto;
+            font-size: 12px;
+            white-space: pre-wrap;
+            word-break: break-word;
+            margin: 14px 0 20px;
+        }
+
+        .note {
+            border-left: 4px solid #2563eb;
+            padding: 10px 14px;
+            background: #eff6ff;
+            border-radius: 10px;
+            color: #1e3a8a;
+            margin: 14px 0 20px;
+        }
+    </style>
+</head>
+<body>
+    <section class="cover">
+        <h1>Android Layouts Assignment Report</h1>
+        <p>This updated report includes four Android UI examples prepared using <strong>ConstraintLayout</strong>, <strong>RelativeLayout</strong>, <strong>LinearLayout</strong>, and <strong>FrameLayout</strong>. Each section contains a preview, XML layout code, Kotlin activity code, and a short explanation of how the selected layout manager works.</p>
+        <div class="meta">
+            <p><strong>Student Name:</strong> ....................................</p>
+            <p><strong>Index Number:</strong> ....................................</p>
+            <p><strong>Module:</strong> Mobile Application Development</p>
+            <p><strong>Submission Date:</strong> 08 April 2026</p>
+        </div>
+        <div class="tag-row">
+            <span class="tag">ConstraintLayout</span>
+            <span class="tag">RelativeLayout</span>
+            <span class="tag">LinearLayout</span>
+            <span class="tag">FrameLayout</span>
+        </div>
+    </section>
+
+    <section class="intro layout-card">
+        <h2>Assignment Overview</h2>
+        <p>The sample application theme used in this report is <strong>Prince Cinema</strong>. The idea was to build a different user interface for each Android layout type while keeping the overall domain consistent. This makes it easier to compare how the same mobile application concept can be implemented with different layout managers.</p>
+        <p>The four selected examples demonstrate different strengths. ConstraintLayout shows flexible responsive positioning, RelativeLayout focuses on view-to-view relationships, LinearLayout demonstrates ordered rows and columns, and FrameLayout highlights layered content. Together they provide a practical comparison for Android UI development.</p>
+    </section>
+    <section class="section">
+        <div class="layout-card">
+            <h2>1. ConstraintLayout</h2>
+            <p>This sample screen presents a movie booking summary with aligned labels, a poster area, and two action buttons arranged using constraints.</p>
+
+            <div class="preview">
+                <img src="ui_preview.svg" alt="ConstraintLayout UI preview" />
+            </div>
+
+            <div class="note">Why this fits: ConstraintLayout is used here to position each view precisely against the parent, a guideline, and neighboring elements without deep nesting.</div>
+
+            <h3>activity_main.xml</h3>
+            <pre>&lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot;?&gt;
+&lt;androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android=&quot;http://schemas.android.com/apk/res/android&quot;
+    xmlns:app=&quot;http://schemas.android.com/apk/res-auto&quot;
+    xmlns:tools=&quot;http://schemas.android.com/tools&quot;
+    android:id=&quot;@+id/main&quot;
+    android:layout_width=&quot;match_parent&quot;
+    android:layout_height=&quot;match_parent&quot;
+    android:background=&quot;#F4F7FB&quot;
+    android:padding=&quot;20dp&quot;
+    tools:context=&quot;.MainActivity&quot;&gt;
+
+    &lt;TextView
+        android:id=&quot;@+id/tvAppName&quot;
+        android:layout_width=&quot;wrap_content&quot;
+        android:layout_height=&quot;wrap_content&quot;
+        android:text=&quot;Prince Cinema&quot;
+        android:textColor=&quot;#0F172A&quot;
+        android:textSize=&quot;28sp&quot;
+        android:textStyle=&quot;bold&quot;
+        app:layout_constraintStart_toStartOf=&quot;parent&quot;
+        app:layout_constraintTop_toTopOf=&quot;parent&quot; /&gt;
+
+    &lt;TextView
+        android:id=&quot;@+id/tvWelcome&quot;
+        android:layout_width=&quot;0dp&quot;
+        android:layout_height=&quot;wrap_content&quot;
+        android:layout_marginTop=&quot;8dp&quot;
+        android:text=&quot;Book your evening show in seconds&quot;
+        android:textColor=&quot;#475569&quot;
+        android:textSize=&quot;16sp&quot;
+        app:layout_constraintEnd_toEndOf=&quot;parent&quot;
+        app:layout_constraintStart_toStartOf=&quot;parent&quot;
+        app:layout_constraintTop_toBottomOf=&quot;@id/tvAppName&quot; /&gt;
+
+    &lt;ImageView
+        android:id=&quot;@+id/ivPoster&quot;
+        android:layout_width=&quot;0dp&quot;
+        android:layout_height=&quot;220dp&quot;
+        android:layout_marginTop=&quot;20dp&quot;
+        android:background=&quot;#DCE7F5&quot;
+        android:contentDescription=&quot;Movie poster&quot;
+        android:padding=&quot;40dp&quot;
+        android:scaleType=&quot;centerInside&quot;
+        android:src=&quot;@android:drawable/ic_media_play&quot;
+        app:layout_constraintEnd_toEndOf=&quot;parent&quot;
+        app:layout_constraintStart_toStartOf=&quot;parent&quot;
+        app:layout_constraintTop_toBottomOf=&quot;@id/tvWelcome&quot; /&gt;
+
+    &lt;TextView
+        android:id=&quot;@+id/tvMovieName&quot;
+        android:layout_width=&quot;wrap_content&quot;
+        android:layout_height=&quot;wrap_content&quot;
+        android:layout_marginTop=&quot;20dp&quot;
+        android:text=&quot;Interstellar&quot;
+        android:textColor=&quot;#0F172A&quot;
+        android:textSize=&quot;24sp&quot;
+        android:textStyle=&quot;bold&quot;
+        app:layout_constraintStart_toStartOf=&quot;parent&quot;
+        app:layout_constraintTop_toBottomOf=&quot;@id/ivPoster&quot; /&gt;
+
+    &lt;TextView
+        android:id=&quot;@+id/tvGenre&quot;
+        android:layout_width=&quot;wrap_content&quot;
+        android:layout_height=&quot;wrap_content&quot;
+        android:layout_marginTop=&quot;6dp&quot;
+        android:text=&quot;Sci-Fi | Adventure | 2h 49m&quot;
+        android:textColor=&quot;#64748B&quot;
+        android:textSize=&quot;14sp&quot;
+        app:layout_constraintStart_toStartOf=&quot;parent&quot;
+        app:layout_constraintTop_toBottomOf=&quot;@id/tvMovieName&quot; /&gt;
+
+    &lt;TextView
+        android:id=&quot;@+id/tvDateLabel&quot;
+        android:layout_width=&quot;wrap_content&quot;
+        android:layout_height=&quot;wrap_content&quot;
+        android:layout_marginTop=&quot;20dp&quot;
+        android:text=&quot;Date&quot;
+        android:textColor=&quot;#1E293B&quot;
+        android:textStyle=&quot;bold&quot;
+        app:layout_constraintStart_toStartOf=&quot;parent&quot;
+        app:layout_constraintTop_toBottomOf=&quot;@id/tvGenre&quot; /&gt;
+
+    &lt;TextView
+        android:id=&quot;@+id/tvDateValue&quot;
+        android:layout_width=&quot;wrap_content&quot;
+        android:layout_height=&quot;wrap_content&quot;
+        android:layout_marginTop=&quot;4dp&quot;
+        android:text=&quot;07 April 2026&quot;
+        android:textColor=&quot;#475569&quot;
+        android:textSize=&quot;15sp&quot;
+        app:layout_constraintStart_toStartOf=&quot;parent&quot;
+        app:layout_constraintTop_toBottomOf=&quot;@id/tvDateLabel&quot; /&gt;
+
+    &lt;TextView
+        android:id=&quot;@+id/tvTimeLabel&quot;
+        android:layout_width=&quot;wrap_content&quot;
+        android:layout_height=&quot;wrap_content&quot;
+        android:text=&quot;Time&quot;
+        android:textColor=&quot;#1E293B&quot;
+        android:textStyle=&quot;bold&quot;
+        app:layout_constraintBaseline_toBaselineOf=&quot;@id/tvDateLabel&quot;
+        app:layout_constraintStart_toStartOf=&quot;@id/guidelineCenter&quot; /&gt;
+
+    &lt;TextView
+        android:id=&quot;@+id/tvTimeValue&quot;
+        android:layout_width=&quot;wrap_content&quot;
+        android:layout_height=&quot;wrap_content&quot;
+        android:layout_marginTop=&quot;4dp&quot;
+        android:text=&quot;7:30 PM&quot;
+        android:textColor=&quot;#475569&quot;
+        android:textSize=&quot;15sp&quot;
+        app:layout_constraintStart_toStartOf=&quot;@id/guidelineCenter&quot;
+        app:layout_constraintTop_toBottomOf=&quot;@id/tvTimeLabel&quot; /&gt;
+
+    &lt;androidx.constraintlayout.widget.Guideline
+        android:id=&quot;@+id/guidelineCenter&quot;
+        android:layout_width=&quot;wrap_content&quot;
+        android:layout_height=&quot;wrap_content&quot;
+        android:orientation=&quot;vertical&quot;
+        app:layout_constraintGuide_percent=&quot;0.55&quot; /&gt;
+
+    &lt;Button
+        android:id=&quot;@+id/btnTrailer&quot;
+        android:layout_width=&quot;0dp&quot;
+        android:layout_height=&quot;wrap_content&quot;
+        android:layout_marginTop=&quot;28dp&quot;
+        android:layout_marginEnd=&quot;8dp&quot;
+        android:backgroundTint=&quot;#CBD5E1&quot;
+        android:text=&quot;Watch Trailer&quot;
+        android:textAllCaps=&quot;false&quot;
+        android:textColor=&quot;#0F172A&quot;
+        app:layout_constraintEnd_toStartOf=&quot;@id/btnBook&quot;
+        app:layout_constraintHorizontal_chainStyle=&quot;spread&quot;
+        app:layout_constraintStart_toStartOf=&quot;parent&quot;
+        app:layout_constraintTop_toBottomOf=&quot;@id/tvDateValue&quot; /&gt;
+
+    &lt;Button
+        android:id=&quot;@+id/btnBook&quot;
+        android:layout_width=&quot;0dp&quot;
+        android:layout_height=&quot;wrap_content&quot;
+        android:layout_marginStart=&quot;8dp&quot;
+        android:layout_marginTop=&quot;28dp&quot;
+        android:backgroundTint=&quot;#2563EB&quot;
+        android:text=&quot;Book Seats&quot;
+        android:textAllCaps=&quot;false&quot;
+        android:textColor=&quot;#FFFFFF&quot;
+        app:layout_constraintEnd_toEndOf=&quot;parent&quot;
+        app:layout_constraintStart_toEndOf=&quot;@id/btnTrailer&quot;
+        app:layout_constraintTop_toBottomOf=&quot;@id/tvTimeValue&quot; /&gt;
+
+&lt;/androidx.constraintlayout.widget.ConstraintLayout&gt;
+</pre>
+
+            <h3>MainActivity.kt</h3>
+            <pre>package com.example.constraintuiapp
+
+import android.os.Bundle
+import android.widget.Button
+import android.widget.Toast
+import androidx.activity.enableEdgeToEdge
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+
+class MainActivity : AppCompatActivity() {
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
+        setContentView(R.layout.activity_main)
+
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { view, insets -&gt;
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            view.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
+            insets
+        }
+
+        findViewById&lt;Button&gt;(R.id.btnBook).setOnClickListener {
+            Toast.makeText(this, &quot;Seat booking opened&quot;, Toast.LENGTH_SHORT).show()
+        }
+
+        findViewById&lt;Button&gt;(R.id.btnTrailer).setOnClickListener {
+            Toast.makeText(this, &quot;Trailer preview selected&quot;, Toast.LENGTH_SHORT).show()
+        }
+    }
+}
+</pre>
+
+            <h3>About ConstraintLayout</h3>
+            <p>ConstraintLayout is a modern Android layout manager that helps developers design flexible and responsive user interfaces with fewer nested views. Instead of placing one layout inside another many times, ConstraintLayout allows each UI component to be positioned by defining relationships, or constraints, with other components or with the parent layout. For example, a button can be attached below a text view, aligned to the start of the screen, or centered between two sides. This approach makes the layout more organized and improves performance because the view hierarchy stays flatter.</p>
+            <p>One of the main advantages of ConstraintLayout is its ability to create complex screens in a clean and efficient way. A developer can align views vertically and horizontally, set margins, control size using constraints, and even use guidelines, chains, barriers, and bias values to fine-tune the design. This gives more control when compared with simple linear or relative layouts. It is especially useful when building screens that need to look good on many different Android devices with different screen sizes and resolutions.</p>
+            <p>Another important benefit of ConstraintLayout is that it works very well with the Android Studio Design Editor. Developers can drag and drop buttons, text views, images, and other widgets onto the screen, then connect them visually using constraints. This makes interface design faster and easier to understand, especially for beginners. The generated XML code is also easy to read once the constraint rules are understood.</p>
+            <p>In summary, ConstraintLayout is a powerful, efficient, and practical layout system for Android application development. It helps create attractive user interfaces, reduces unnecessary nesting, supports responsive design, and offers excellent tool support inside Android Studio. Because of these strengths, it is widely used for modern Android UI design.
+</p>
+        </div>
+    </section>
+    <section class="section">
+        <div class="layout-card">
+            <h2>2. RelativeLayout</h2>
+            <p>This sample screen shows a featured movie panel where the poster, text block, and action buttons are placed by referring to the parent and to neighboring views.</p>
+
+            <div class="preview">
+                <img src="../relativelayout/ui_preview.svg" alt="RelativeLayout UI preview" />
+            </div>
+
+            <div class="note">Why this fits: RelativeLayout makes it easy to say that one view should appear below another, beside another, or attached to an edge of the parent.</div>
+
+            <h3>activity_main.xml</h3>
+            <pre>&lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot;?&gt;
+&lt;RelativeLayout xmlns:android=&quot;http://schemas.android.com/apk/res/android&quot;
+    xmlns:tools=&quot;http://schemas.android.com/tools&quot;
+    android:id=&quot;@+id/main&quot;
+    android:layout_width=&quot;match_parent&quot;
+    android:layout_height=&quot;match_parent&quot;
+    android:background=&quot;#FAF7F2&quot;
+    android:padding=&quot;20dp&quot;
+    tools:context=&quot;.MainActivity&quot;&gt;
+
+    &lt;TextView
+        android:id=&quot;@+id/tvBrand&quot;
+        android:layout_width=&quot;wrap_content&quot;
+        android:layout_height=&quot;wrap_content&quot;
+        android:text=&quot;Prince Cinema&quot;
+        android:textColor=&quot;#422006&quot;
+        android:textSize=&quot;28sp&quot;
+        android:textStyle=&quot;bold&quot; /&gt;
+
+    &lt;TextView
+        android:id=&quot;@+id/tvSubtitle&quot;
+        android:layout_width=&quot;wrap_content&quot;
+        android:layout_height=&quot;wrap_content&quot;
+        android:layout_below=&quot;@id/tvBrand&quot;
+        android:layout_marginTop=&quot;6dp&quot;
+        android:text=&quot;RelativeLayout demo for a featured show&quot;
+        android:textColor=&quot;#7C5A3B&quot;
+        android:textSize=&quot;15sp&quot; /&gt;
+
+    &lt;ImageView
+        android:id=&quot;@+id/ivPoster&quot;
+        android:layout_width=&quot;128dp&quot;
+        android:layout_height=&quot;188dp&quot;
+        android:layout_below=&quot;@id/tvSubtitle&quot;
+        android:layout_alignParentEnd=&quot;true&quot;
+        android:layout_marginTop=&quot;22dp&quot;
+        android:background=&quot;#F4C27A&quot;
+        android:contentDescription=&quot;Movie poster&quot;
+        android:padding=&quot;34dp&quot;
+        android:scaleType=&quot;centerInside&quot;
+        android:src=&quot;@android:drawable/ic_media_play&quot; /&gt;
+
+    &lt;TextView
+        android:id=&quot;@+id/tvMovieTitle&quot;
+        android:layout_width=&quot;wrap_content&quot;
+        android:layout_height=&quot;wrap_content&quot;
+        android:layout_alignTop=&quot;@id/ivPoster&quot;
+        android:layout_toStartOf=&quot;@id/ivPoster&quot;
+        android:layout_marginEnd=&quot;16dp&quot;
+        android:text=&quot;Dune: Part Two&quot;
+        android:textColor=&quot;#2C1810&quot;
+        android:textSize=&quot;24sp&quot;
+        android:textStyle=&quot;bold&quot; /&gt;
+
+    &lt;TextView
+        android:id=&quot;@+id/tvMovieInfo&quot;
+        android:layout_width=&quot;wrap_content&quot;
+        android:layout_height=&quot;wrap_content&quot;
+        android:layout_below=&quot;@id/tvMovieTitle&quot;
+        android:layout_alignStart=&quot;@id/tvMovieTitle&quot;
+        android:layout_toStartOf=&quot;@id/ivPoster&quot;
+        android:layout_marginTop=&quot;8dp&quot;
+        android:layout_marginEnd=&quot;16dp&quot;
+        android:text=&quot;Sci-Fi Adventure | Hall 02 | 8:15 PM&quot;
+        android:textColor=&quot;#7C5A3B&quot;
+        android:textSize=&quot;15sp&quot; /&gt;
+
+    &lt;TextView
+        android:id=&quot;@+id/tvSeatLabel&quot;
+        android:layout_width=&quot;wrap_content&quot;
+        android:layout_height=&quot;wrap_content&quot;
+        android:layout_below=&quot;@id/tvMovieInfo&quot;
+        android:layout_alignStart=&quot;@id/tvMovieInfo&quot;
+        android:layout_marginTop=&quot;24dp&quot;
+        android:text=&quot;Available Seats&quot;
+        android:textColor=&quot;#422006&quot;
+        android:textStyle=&quot;bold&quot; /&gt;
+
+    &lt;TextView
+        android:id=&quot;@+id/tvSeatValue&quot;
+        android:layout_width=&quot;wrap_content&quot;
+        android:layout_height=&quot;wrap_content&quot;
+        android:layout_below=&quot;@id/tvSeatLabel&quot;
+        android:layout_alignStart=&quot;@id/tvSeatLabel&quot;
+        android:layout_marginTop=&quot;6dp&quot;
+        android:text=&quot;48 seats remaining&quot;
+        android:textColor=&quot;#9A3412&quot;
+        android:textSize=&quot;18sp&quot;
+        android:textStyle=&quot;bold&quot; /&gt;
+
+    &lt;TextView
+        android:id=&quot;@+id/tvNote&quot;
+        android:layout_width=&quot;wrap_content&quot;
+        android:layout_height=&quot;wrap_content&quot;
+        android:layout_below=&quot;@id/tvSeatValue&quot;
+        android:layout_alignStart=&quot;@id/tvSeatValue&quot;
+        android:layout_toStartOf=&quot;@id/ivPoster&quot;
+        android:layout_marginTop=&quot;10dp&quot;
+        android:layout_marginEnd=&quot;16dp&quot;
+        android:text=&quot;Views are placed relative to the parent and to sibling elements.&quot;
+        android:textColor=&quot;#6B4F36&quot;
+        android:textSize=&quot;14sp&quot; /&gt;
+
+    &lt;View
+        android:id=&quot;@+id/divider&quot;
+        android:layout_width=&quot;match_parent&quot;
+        android:layout_height=&quot;1dp&quot;
+        android:layout_above=&quot;@id/btnShare&quot;
+        android:layout_marginBottom=&quot;18dp&quot;
+        android:background=&quot;#E2D5C3&quot; /&gt;
+
+    &lt;Button
+        android:id=&quot;@+id/btnShare&quot;
+        android:layout_width=&quot;140dp&quot;
+        android:layout_height=&quot;wrap_content&quot;
+        android:layout_alignParentBottom=&quot;true&quot;
+        android:text=&quot;Share&quot;
+        android:textAllCaps=&quot;false&quot; /&gt;
+
+    &lt;Button
+        android:id=&quot;@+id/btnReserve&quot;
+        android:layout_width=&quot;160dp&quot;
+        android:layout_height=&quot;wrap_content&quot;
+        android:layout_alignParentBottom=&quot;true&quot;
+        android:layout_alignParentEnd=&quot;true&quot;
+        android:backgroundTint=&quot;#EA580C&quot;
+        android:text=&quot;Reserve Now&quot;
+        android:textAllCaps=&quot;false&quot;
+        android:textColor=&quot;#FFFFFF&quot; /&gt;
+
+&lt;/RelativeLayout&gt;
+</pre>
+
+            <h3>MainActivity.kt</h3>
+            <pre>package com.example.relativeuiapp
+
+import android.os.Bundle
+import android.widget.Button
+import android.widget.Toast
+import androidx.activity.enableEdgeToEdge
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+
+class MainActivity : AppCompatActivity() {
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
+        setContentView(R.layout.activity_main)
+
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { view, insets -&gt;
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            view.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
+            insets
+        }
+
+        findViewById&lt;Button&gt;(R.id.btnReserve).setOnClickListener {
+            Toast.makeText(this, &quot;Reservation panel opened&quot;, Toast.LENGTH_SHORT).show()
+        }
+
+        findViewById&lt;Button&gt;(R.id.btnShare).setOnClickListener {
+            Toast.makeText(this, &quot;Show details shared&quot;, Toast.LENGTH_SHORT).show()
+        }
+    }
+}
+</pre>
+
+            <h3>About RelativeLayout</h3>
+            <p>RelativeLayout is an Android layout manager that places views according to their relationship with the parent container or with other views already inside the screen. Instead of stacking everything in one row or one column, a developer can say that one view should appear below another, to the right of another, aligned to the bottom of the screen, or centered inside the parent. This makes RelativeLayout useful when a design has elements that depend on each other's positions.</p>
+            <p>In this sample interface, the movie poster is aligned to the right side of the screen while the title, show information, and seat details are placed to its left. The text section is arranged by using rules such as below and toStartOf, and the action buttons are attached to the bottom of the parent layout. This clearly demonstrates the core idea of RelativeLayout, where each component finds its place by referencing another component or the parent container.</p>
+            <p>RelativeLayout is easy to understand and was widely used before ConstraintLayout became the preferred choice for modern Android design. It is still helpful for small and medium-sized layouts because the XML remains readable and the positioning rules are simple. However, for very complex screens, ConstraintLayout is usually more efficient and flexible. Even so, RelativeLayout remains a valuable layout for learning how view relationships work in Android UI design.
+</p>
+        </div>
+    </section>
+    <section class="section">
+        <div class="layout-card">
+            <h2>3. LinearLayout</h2>
+            <p>This sample screen builds a simple showtime planner using vertical and horizontal rows, making the order of views very easy to follow.</p>
+
+            <div class="preview">
+                <img src="../linearlayout/ui_preview.svg" alt="LinearLayout UI preview" />
+            </div>
+
+            <div class="note">Why this fits: LinearLayout is best when the interface naturally flows in one direction and child views can be grouped into rows or columns.</div>
+
+            <h3>activity_main.xml</h3>
+            <pre>&lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot;?&gt;
+&lt;LinearLayout xmlns:android=&quot;http://schemas.android.com/apk/res/android&quot;
+    xmlns:tools=&quot;http://schemas.android.com/tools&quot;
+    android:id=&quot;@+id/main&quot;
+    android:layout_width=&quot;match_parent&quot;
+    android:layout_height=&quot;match_parent&quot;
+    android:background=&quot;#F6FAF8&quot;
+    android:orientation=&quot;vertical&quot;
+    android:padding=&quot;20dp&quot;
+    tools:context=&quot;.MainActivity&quot;&gt;
+
+    &lt;TextView
+        android:layout_width=&quot;wrap_content&quot;
+        android:layout_height=&quot;wrap_content&quot;
+        android:text=&quot;Prince Cinema&quot;
+        android:textColor=&quot;#113B2C&quot;
+        android:textSize=&quot;28sp&quot;
+        android:textStyle=&quot;bold&quot; /&gt;
+
+    &lt;TextView
+        android:layout_width=&quot;wrap_content&quot;
+        android:layout_height=&quot;wrap_content&quot;
+        android:layout_marginTop=&quot;6dp&quot;
+        android:text=&quot;LinearLayout demo for showtime planning&quot;
+        android:textColor=&quot;#4D6B5F&quot;
+        android:textSize=&quot;15sp&quot; /&gt;
+
+    &lt;LinearLayout
+        android:layout_width=&quot;match_parent&quot;
+        android:layout_height=&quot;wrap_content&quot;
+        android:layout_marginTop=&quot;22dp&quot;
+        android:gravity=&quot;center&quot;
+        android:orientation=&quot;horizontal&quot;&gt;
+
+        &lt;TextView
+            android:layout_width=&quot;0dp&quot;
+            android:layout_height=&quot;wrap_content&quot;
+            android:layout_marginEnd=&quot;8dp&quot;
+            android:layout_weight=&quot;1&quot;
+            android:background=&quot;#D6F5E3&quot;
+            android:gravity=&quot;center&quot;
+            android:padding=&quot;12dp&quot;
+            android:text=&quot;2D&quot;
+            android:textColor=&quot;#14532D&quot;
+            android:textStyle=&quot;bold&quot; /&gt;
+
+        &lt;TextView
+            android:layout_width=&quot;0dp&quot;
+            android:layout_height=&quot;wrap_content&quot;
+            android:layout_marginHorizontal=&quot;4dp&quot;
+            android:layout_weight=&quot;1&quot;
+            android:background=&quot;#DCFCE7&quot;
+            android:gravity=&quot;center&quot;
+            android:padding=&quot;12dp&quot;
+            android:text=&quot;3D&quot;
+            android:textColor=&quot;#14532D&quot;
+            android:textStyle=&quot;bold&quot; /&gt;
+
+        &lt;TextView
+            android:layout_width=&quot;0dp&quot;
+            android:layout_height=&quot;wrap_content&quot;
+            android:layout_marginStart=&quot;8dp&quot;
+            android:layout_weight=&quot;1&quot;
+            android:background=&quot;#BBF7D0&quot;
+            android:gravity=&quot;center&quot;
+            android:padding=&quot;12dp&quot;
+            android:text=&quot;IMAX&quot;
+            android:textColor=&quot;#14532D&quot;
+            android:textStyle=&quot;bold&quot; /&gt;
+    &lt;/LinearLayout&gt;
+
+    &lt;LinearLayout
+        android:layout_width=&quot;match_parent&quot;
+        android:layout_height=&quot;wrap_content&quot;
+        android:layout_marginTop=&quot;24dp&quot;
+        android:background=&quot;#FFFFFF&quot;
+        android:orientation=&quot;vertical&quot;
+        android:padding=&quot;18dp&quot;&gt;
+
+        &lt;TextView
+            android:layout_width=&quot;wrap_content&quot;
+            android:layout_height=&quot;wrap_content&quot;
+            android:text=&quot;Today&#39;s Showtime Queue&quot;
+            android:textColor=&quot;#113B2C&quot;
+            android:textSize=&quot;20sp&quot;
+            android:textStyle=&quot;bold&quot; /&gt;
+
+        &lt;LinearLayout
+            android:layout_width=&quot;match_parent&quot;
+            android:layout_height=&quot;wrap_content&quot;
+            android:layout_marginTop=&quot;18dp&quot;
+            android:gravity=&quot;center_vertical&quot;
+            android:orientation=&quot;horizontal&quot;&gt;
+
+            &lt;TextView
+                android:layout_width=&quot;0dp&quot;
+                android:layout_height=&quot;wrap_content&quot;
+                android:layout_weight=&quot;1&quot;
+                android:text=&quot;10:30 AM&quot;
+                android:textColor=&quot;#166534&quot;
+                android:textStyle=&quot;bold&quot; /&gt;
+
+            &lt;TextView
+                android:layout_width=&quot;wrap_content&quot;
+                android:layout_height=&quot;wrap_content&quot;
+                android:text=&quot;Hall 01&quot; /&gt;
+
+            &lt;TextView
+                android:layout_width=&quot;wrap_content&quot;
+                android:layout_height=&quot;wrap_content&quot;
+                android:layout_marginStart=&quot;18dp&quot;
+                android:text=&quot;84 seats&quot; /&gt;
+        &lt;/LinearLayout&gt;
+
+        &lt;LinearLayout
+            android:layout_width=&quot;match_parent&quot;
+            android:layout_height=&quot;wrap_content&quot;
+            android:layout_marginTop=&quot;14dp&quot;
+            android:gravity=&quot;center_vertical&quot;
+            android:orientation=&quot;horizontal&quot;&gt;
+
+            &lt;TextView
+                android:layout_width=&quot;0dp&quot;
+                android:layout_height=&quot;wrap_content&quot;
+                android:layout_weight=&quot;1&quot;
+                android:text=&quot;01:45 PM&quot;
+                android:textColor=&quot;#166534&quot;
+                android:textStyle=&quot;bold&quot; /&gt;
+
+            &lt;TextView
+                android:layout_width=&quot;wrap_content&quot;
+                android:layout_height=&quot;wrap_content&quot;
+                android:text=&quot;Hall 03&quot; /&gt;
+
+            &lt;TextView
+                android:layout_width=&quot;wrap_content&quot;
+                android:layout_height=&quot;wrap_content&quot;
+                android:layout_marginStart=&quot;18dp&quot;
+                android:text=&quot;32 seats&quot; /&gt;
+        &lt;/LinearLayout&gt;
+
+        &lt;LinearLayout
+            android:layout_width=&quot;match_parent&quot;
+            android:layout_height=&quot;wrap_content&quot;
+            android:layout_marginTop=&quot;14dp&quot;
+            android:gravity=&quot;center_vertical&quot;
+            android:orientation=&quot;horizontal&quot;&gt;
+
+            &lt;TextView
+                android:layout_width=&quot;0dp&quot;
+                android:layout_height=&quot;wrap_content&quot;
+                android:layout_weight=&quot;1&quot;
+                android:text=&quot;06:30 PM&quot;
+                android:textColor=&quot;#166534&quot;
+                android:textStyle=&quot;bold&quot; /&gt;
+
+            &lt;TextView
+                android:layout_width=&quot;wrap_content&quot;
+                android:layout_height=&quot;wrap_content&quot;
+                android:text=&quot;Hall 05&quot; /&gt;
+
+            &lt;TextView
+                android:layout_width=&quot;wrap_content&quot;
+                android:layout_height=&quot;wrap_content&quot;
+                android:layout_marginStart=&quot;18dp&quot;
+                android:text=&quot;Sold Out&quot; /&gt;
+        &lt;/LinearLayout&gt;
+    &lt;/LinearLayout&gt;
+
+    &lt;LinearLayout
+        android:layout_width=&quot;match_parent&quot;
+        android:layout_height=&quot;wrap_content&quot;
+        android:layout_marginTop=&quot;24dp&quot;
+        android:gravity=&quot;center&quot;
+        android:orientation=&quot;horizontal&quot;&gt;
+
+        &lt;Button
+            android:id=&quot;@+id/btnRefresh&quot;
+            android:layout_width=&quot;0dp&quot;
+            android:layout_height=&quot;wrap_content&quot;
+            android:layout_marginEnd=&quot;8dp&quot;
+            android:layout_weight=&quot;1&quot;
+            android:text=&quot;Refresh&quot;
+            android:textAllCaps=&quot;false&quot; /&gt;
+
+        &lt;Button
+            android:id=&quot;@+id/btnContinue&quot;
+            android:layout_width=&quot;0dp&quot;
+            android:layout_height=&quot;wrap_content&quot;
+            android:layout_marginStart=&quot;8dp&quot;
+            android:layout_weight=&quot;1&quot;
+            android:backgroundTint=&quot;#15803D&quot;
+            android:text=&quot;Continue&quot;
+            android:textAllCaps=&quot;false&quot;
+            android:textColor=&quot;#FFFFFF&quot; /&gt;
+    &lt;/LinearLayout&gt;
+
+&lt;/LinearLayout&gt;
+</pre>
+
+            <h3>MainActivity.kt</h3>
+            <pre>package com.example.linearuiapp
+
+import android.os.Bundle
+import android.widget.Button
+import android.widget.Toast
+import androidx.activity.enableEdgeToEdge
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+
+class MainActivity : AppCompatActivity() {
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
+        setContentView(R.layout.activity_main)
+
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { view, insets -&gt;
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            view.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
+            insets
+        }
+
+        findViewById&lt;Button&gt;(R.id.btnRefresh).setOnClickListener {
+            Toast.makeText(this, &quot;Showtimes refreshed&quot;, Toast.LENGTH_SHORT).show()
+        }
+
+        findViewById&lt;Button&gt;(R.id.btnContinue).setOnClickListener {
+            Toast.makeText(this, &quot;Moving to seat selection&quot;, Toast.LENGTH_SHORT).show()
+        }
+    }
+}
+</pre>
+
+            <h3>About LinearLayout</h3>
+            <p>LinearLayout is one of the simplest Android layout managers because it arranges views in a single direction. By setting the orientation to vertical or horizontal, a developer can place components in a clear sequence either from top to bottom or from left to right. This makes LinearLayout very useful when the interface naturally follows an ordered flow, such as forms, menus, lists of actions, or rows of buttons.</p>
+            <p>In this sample screen, the content is built using several vertical and horizontal LinearLayout containers. The top row displays movie formats, the middle section stacks showtime rows one under another, and the bottom section places two action buttons side by side. Weight values are used to divide horizontal space evenly, which is a common LinearLayout technique. The result is a clean structure that clearly shows how rows and columns are created by nesting layouts.</p>
+            <p>LinearLayout is ideal for beginner-friendly Android projects because the XML is easy to read and the behavior is predictable. However, if many LinearLayouts are nested inside each other, the view hierarchy can become deep and harder to manage. For simple screens, it remains an excellent choice, but for larger and more flexible designs, developers often move to ConstraintLayout. Even then, understanding LinearLayout is important because it teaches the basic logic of arranging UI elements in Android.
+</p>
+        </div>
+    </section>
+    <section class="section">
+        <div class="layout-card">
+            <h2>4. FrameLayout</h2>
+            <p>This sample screen uses one main content area to stack a poster, an overlay, a badge, a play icon, and a bottom information panel.</p>
+
+            <div class="preview">
+                <img src="../framelayout/ui_preview.svg" alt="FrameLayout UI preview" />
+            </div>
+
+            <div class="note">Why this fits: FrameLayout is designed for layered content, where each new child view can appear on top of the previous one in the same space.</div>
+
+            <h3>activity_main.xml</h3>
+            <pre>&lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot;?&gt;
+&lt;LinearLayout xmlns:android=&quot;http://schemas.android.com/apk/res/android&quot;
+    xmlns:tools=&quot;http://schemas.android.com/tools&quot;
+    android:id=&quot;@+id/main&quot;
+    android:layout_width=&quot;match_parent&quot;
+    android:layout_height=&quot;match_parent&quot;
+    android:background=&quot;#FCF7F8&quot;
+    android:orientation=&quot;vertical&quot;
+    android:padding=&quot;20dp&quot;
+    tools:context=&quot;.MainActivity&quot;&gt;
+
+    &lt;TextView
+        android:layout_width=&quot;wrap_content&quot;
+        android:layout_height=&quot;wrap_content&quot;
+        android:text=&quot;Prince Cinema&quot;
+        android:textColor=&quot;#4A1D2C&quot;
+        android:textSize=&quot;28sp&quot;
+        android:textStyle=&quot;bold&quot; /&gt;
+
+    &lt;TextView
+        android:layout_width=&quot;wrap_content&quot;
+        android:layout_height=&quot;wrap_content&quot;
+        android:layout_marginTop=&quot;6dp&quot;
+        android:text=&quot;FrameLayout demo for stacked poster content&quot;
+        android:textColor=&quot;#7D5260&quot;
+        android:textSize=&quot;15sp&quot; /&gt;
+
+    &lt;FrameLayout
+        android:layout_width=&quot;match_parent&quot;
+        android:layout_height=&quot;260dp&quot;
+        android:layout_marginTop=&quot;24dp&quot;&gt;
+
+        &lt;ImageView
+            android:layout_width=&quot;match_parent&quot;
+            android:layout_height=&quot;match_parent&quot;
+            android:background=&quot;#F4A5B8&quot;
+            android:contentDescription=&quot;Poster background&quot;
+            android:scaleType=&quot;centerCrop&quot;
+            android:src=&quot;@android:drawable/ic_menu_gallery&quot; /&gt;
+
+        &lt;View
+            android:layout_width=&quot;match_parent&quot;
+            android:layout_height=&quot;match_parent&quot;
+            android:background=&quot;#66000000&quot; /&gt;
+
+        &lt;TextView
+            android:layout_width=&quot;wrap_content&quot;
+            android:layout_height=&quot;wrap_content&quot;
+            android:layout_gravity=&quot;top|start&quot;
+            android:layout_margin=&quot;16dp&quot;
+            android:background=&quot;#FFF1F2&quot;
+            android:paddingLeft=&quot;12dp&quot;
+            android:paddingTop=&quot;8dp&quot;
+            android:paddingRight=&quot;12dp&quot;
+            android:paddingBottom=&quot;8dp&quot;
+            android:text=&quot;Tonight&#39;s Special&quot;
+            android:textColor=&quot;#9F1239&quot;
+            android:textStyle=&quot;bold&quot; /&gt;
+
+        &lt;ImageView
+            android:id=&quot;@+id/btnPlay&quot;
+            android:layout_width=&quot;72dp&quot;
+            android:layout_height=&quot;72dp&quot;
+            android:layout_gravity=&quot;center&quot;
+            android:background=&quot;#CCFFFFFF&quot;
+            android:contentDescription=&quot;Play trailer&quot;
+            android:padding=&quot;18dp&quot;
+            android:src=&quot;@android:drawable/ic_media_play&quot; /&gt;
+
+        &lt;LinearLayout
+            android:layout_width=&quot;match_parent&quot;
+            android:layout_height=&quot;wrap_content&quot;
+            android:layout_gravity=&quot;bottom&quot;
+            android:background=&quot;#CC4A1D2C&quot;
+            android:orientation=&quot;vertical&quot;
+            android:padding=&quot;16dp&quot;&gt;
+
+            &lt;TextView
+                android:layout_width=&quot;wrap_content&quot;
+                android:layout_height=&quot;wrap_content&quot;
+                android:text=&quot;La La Land&quot;
+                android:textColor=&quot;#FFFFFF&quot;
+                android:textSize=&quot;22sp&quot;
+                android:textStyle=&quot;bold&quot; /&gt;
+
+            &lt;TextView
+                android:layout_width=&quot;wrap_content&quot;
+                android:layout_height=&quot;wrap_content&quot;
+                android:layout_marginTop=&quot;4dp&quot;
+                android:text=&quot;Romance Musical | 7:00 PM&quot;
+                android:textColor=&quot;#FBCFE8&quot;
+                android:textSize=&quot;14sp&quot; /&gt;
+
+            &lt;Button
+                android:id=&quot;@+id/btnDetails&quot;
+                android:layout_width=&quot;wrap_content&quot;
+                android:layout_height=&quot;wrap_content&quot;
+                android:layout_marginTop=&quot;12dp&quot;
+                android:text=&quot;View Details&quot;
+                android:textAllCaps=&quot;false&quot; /&gt;
+        &lt;/LinearLayout&gt;
+    &lt;/FrameLayout&gt;
+
+    &lt;TextView
+        android:layout_width=&quot;match_parent&quot;
+        android:layout_height=&quot;wrap_content&quot;
+        android:layout_marginTop=&quot;18dp&quot;
+        android:text=&quot;This screen demonstrates layered content by stacking a poster, a dark overlay, a play icon, a top badge, and a bottom details panel in the same area.&quot;
+        android:textColor=&quot;#6B4C57&quot;
+        android:textSize=&quot;14sp&quot; /&gt;
+
+&lt;/LinearLayout&gt;
+</pre>
+
+            <h3>MainActivity.kt</h3>
+            <pre>package com.example.frameuiapp
+
+import android.os.Bundle
+import android.view.View
+import android.widget.Button
+import android.widget.Toast
+import androidx.activity.enableEdgeToEdge
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+
+class MainActivity : AppCompatActivity() {
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
+        setContentView(R.layout.activity_main)
+
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { view, insets -&gt;
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            view.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
+            insets
+        }
+
+        findViewById&lt;View&gt;(R.id.btnPlay).setOnClickListener {
+            Toast.makeText(this, &quot;Trailer is playing&quot;, Toast.LENGTH_SHORT).show()
+        }
+
+        findViewById&lt;Button&gt;(R.id.btnDetails).setOnClickListener {
+            Toast.makeText(this, &quot;Opening movie details&quot;, Toast.LENGTH_SHORT).show()
+        }
+    }
+}
+</pre>
+
+            <h3>About FrameLayout</h3>
+            <p>FrameLayout is an Android layout manager designed for stacking views on top of each other inside a single area. Every child view shares the same parent space, and the order in which the views are declared determines which one appears in front. Because of this behavior, FrameLayout is perfect for overlays, floating labels, media previews, fragments, loading screens, and simple layered designs.</p>
+            <p>In this sample UI, the poster background is placed first, then a semi-transparent dark overlay is added, followed by a top badge, a centered play icon, and a details panel at the bottom. All of these components exist inside the same FrameLayout container, so the screen demonstrates the main feature of FrameLayout very clearly. Instead of arranging views side by side, the layout builds depth by placing one view above another.</p>
+            <p>FrameLayout is simple, lightweight, and very useful when the design focuses on a single content area with multiple layers. It is not the best option for large screens that need complex positioning in many directions, but it works extremely well for stacked content. Learning FrameLayout helps developers understand the visual order of views and how Android can create rich interfaces by combining layers in one container.
+</p>
+        </div>
+    </section>
+</body>
+</html>
+

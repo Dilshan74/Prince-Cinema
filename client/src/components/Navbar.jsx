@@ -1,0 +1,251 @@
+import React from 'react'
+import { Link, NavLink, useNavigate } from 'react-router-dom'
+import { Search, Menu, X, BadgeCheck, LogOut } from 'lucide-react'
+import { assets } from '../assets/assets'
+import { authChangeEventName, getCurrentSession, logoutUser } from '../lib/auth'
+
+const Navbar = () => {
+  const navigate = useNavigate()
+  const [isMenuOpen, setIsMenuOpen] = React.useState(false)
+  const [isScrolled, setIsScrolled] = React.useState(false)
+  const [session, setSession] = React.useState(() => getCurrentSession())
+  const [isSearchOpen, setIsSearchOpen] = React.useState(false)
+  const [searchValue, setSearchValue] = React.useState('')
+
+  React.useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 16)
+    }
+
+    handleScroll()
+    window.addEventListener('scroll', handleScroll)
+
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
+
+  React.useEffect(() => {
+    const syncSession = () => {
+      setSession(getCurrentSession())
+    }
+
+    syncSession()
+    window.addEventListener('storage', syncSession)
+    window.addEventListener(authChangeEventName, syncSession)
+
+    return () => {
+      window.removeEventListener('storage', syncSession)
+      window.removeEventListener(authChangeEventName, syncSession)
+    }
+  }, [])
+
+  const navLinks = [
+    { name: 'Home', path: '/' },
+    { name: 'Movies', path: '/movies' },
+    { name: 'Theaters', path: '/theaters' },
+    { name: 'Favorites', path: '/favorites' },
+  ]
+
+  const handleLogout = () => {
+    logoutUser()
+    setIsMenuOpen(false)
+    navigate('/')
+  }
+
+  return (
+    <header
+      className={`fixed top-0 left-0 z-50 w-full transition-all duration-300 ${
+        isScrolled
+          ? 'border-b border-white/10 bg-black/28 backdrop-blur-2xl supports-[backdrop-filter]:bg-black/18'
+          : 'bg-transparent'
+      }`}
+    >
+      <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-4 md:px-6 lg:px-10">
+        <Link to="/" className="shrink-0">
+          <img src={assets.logo} alt="Prince Cinema" className="h-10 w-auto md:h-12" />
+        </Link>
+
+        <nav
+          className={`hidden items-center gap-8 rounded-full border px-8 py-3 shadow-[0_10px_40px_rgba(0,0,0,0.22)] backdrop-blur-xl transition-all duration-300 md:flex ${
+            isScrolled
+              ? 'border-white/12 bg-white/12 supports-[backdrop-filter]:bg-white/10'
+              : 'border-white/10 bg-white/10 supports-[backdrop-filter]:bg-white/8'
+          }`}
+        >
+          {navLinks.map((link) => (
+            <NavLink
+              key={link.name}
+              to={link.path}
+              end={link.path === '/'}
+              className={({ isActive }) =>
+                `inline-flex items-center text-sm font-semibold transition ${
+                  isActive
+                    ? 'text-red-300'
+                    : 'text-white/90 hover:text-red-300'
+                }`
+              }
+              style={({ isActive }) => ({
+                color: isActive ? '#fda4af' : undefined,
+              })}
+            >
+              {link.name}
+            </NavLink>
+          ))}
+        </nav>
+
+        <div className="hidden items-center gap-4 md:flex">
+          <div className="flex items-center gap-3">
+            <div
+              className={`overflow-hidden transition-all duration-300 ease-in-out ${
+                isSearchOpen ? 'w-64 opacity-100' : 'w-0 opacity-0'
+              }`}
+            >
+              <div
+                className={`relative ${
+                  isSearchOpen ? 'pointer-events-auto' : 'pointer-events-none'
+                }`}
+              >
+                <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/45" />
+                <input
+                  type="text"
+                  value={searchValue}
+                  onChange={(event) => setSearchValue(event.target.value)}
+                  placeholder="Search movies..."
+                  className={`w-full rounded-full border py-2.5 pl-10 pr-4 text-sm text-white outline-none backdrop-blur-xl transition ${
+                    isScrolled
+                      ? 'border-white/12 bg-white/12 supports-[backdrop-filter]:bg-white/10'
+                      : 'border-white/10 bg-white/10 supports-[backdrop-filter]:bg-white/8'
+                  }`}
+                />
+              </div>
+            </div>
+
+            <button
+              aria-label="Search"
+              onClick={() => setIsSearchOpen((current) => !current)}
+              className={`rounded-full border p-2.5 text-white backdrop-blur-xl transition hover:border-red-400/50 hover:text-red-400 ${
+                isScrolled
+                  ? 'border-white/12 bg-white/12 supports-[backdrop-filter]:bg-white/10'
+                  : 'border-white/10 bg-white/10 supports-[backdrop-filter]:bg-white/8'
+              }`}
+            >
+              <Search className="h-5 w-5" />
+            </button>
+          </div>
+
+          {session ? (
+            <>
+              <div
+                className={`inline-flex items-center gap-2 rounded-full border px-4 py-2.5 text-sm font-semibold text-emerald-300 backdrop-blur-xl ${
+                  isScrolled
+                    ? 'border-emerald-400/25 bg-emerald-500/10'
+                    : 'border-emerald-400/20 bg-emerald-500/8'
+                }`}
+              >
+                <BadgeCheck className="h-4.5 w-4.5 fill-emerald-400/20 text-emerald-400" />
+                <span>{session.username || 'Logged In'}</span>
+              </div>
+
+              <button
+                onClick={handleLogout}
+                className={`inline-flex items-center gap-2 rounded-full border px-4 py-2.5 text-sm font-semibold text-white backdrop-blur-xl transition hover:border-red-400/50 hover:text-red-300 ${
+                  isScrolled
+                    ? 'border-white/12 bg-white/12 supports-[backdrop-filter]:bg-white/10'
+                    : 'border-white/10 bg-white/10 supports-[backdrop-filter]:bg-white/8'
+                }`}
+              >
+                <LogOut className="h-4 w-4" />
+                Logout
+              </button>
+            </>
+          ) : (
+            <button
+              onClick={() => navigate('/login')}
+              className={`rounded-full border px-6 py-2.5 text-sm font-semibold text-white backdrop-blur-xl transition hover:border-red-400/50 hover:text-red-300 ${
+                isScrolled
+                  ? 'border-white/12 bg-white/12 supports-[backdrop-filter]:bg-white/10'
+                  : 'border-white/10 bg-white/10 supports-[backdrop-filter]:bg-white/8'
+              }`}
+            >
+              Login
+            </button>
+          )}
+        </div>
+
+        <button
+          onClick={() => setIsMenuOpen((prev) => !prev)}
+          aria-label="Toggle menu"
+          className="rounded-full border border-white/10 p-2 text-white md:hidden"
+        >
+          {isMenuOpen ? <X className="h-7 w-7" /> : <Menu className="h-7 w-7" />}
+        </button>
+      </div>
+
+      {isMenuOpen && (
+        <div className="mx-6 rounded-3xl border border-white/10 bg-black/50 px-6 py-4 backdrop-blur-xl supports-[backdrop-filter]:bg-black/35 md:hidden">
+          <div className="flex flex-col gap-4">
+            <div className="relative md:hidden">
+              <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/45" />
+              <input
+                type="text"
+                value={searchValue}
+                onChange={(event) => setSearchValue(event.target.value)}
+                placeholder="Search movies..."
+                className="w-full rounded-full border border-white/10 bg-white/5 py-3 pl-10 pr-4 text-sm text-white outline-none"
+              />
+            </div>
+
+            {navLinks.map((link) => (
+              <NavLink
+                key={link.name}
+                to={link.path}
+                end={link.path === '/'}
+                onClick={() => setIsMenuOpen(false)}
+                className={({ isActive }) =>
+                  `w-fit text-base font-medium transition ${
+                    isActive
+                      ? 'text-red-300'
+                      : 'text-white/90 hover:text-red-300'
+                  }`
+                }
+                style={({ isActive }) => ({
+                  color: isActive ? '#fda4af' : undefined,
+                })}
+              >
+                {link.name}
+              </NavLink>
+            ))}
+
+            {session ? (
+              <>
+                <div className="mt-2 inline-flex w-fit items-center gap-2 rounded-full border border-emerald-400/25 bg-emerald-500/10 px-4 py-2 text-sm font-semibold text-emerald-300">
+                  <BadgeCheck className="h-4 w-4 text-emerald-400" />
+                  <span>{session.username || 'Logged In'}</span>
+                </div>
+
+                <button
+                  onClick={handleLogout}
+                  className="inline-flex w-fit items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm font-semibold text-white transition hover:border-red-400/50 hover:text-red-300"
+                >
+                  <LogOut className="h-4 w-4" />
+                  Logout
+                </button>
+              </>
+            ) : (
+              <button
+                onClick={() => {
+                  setIsMenuOpen(false)
+                  navigate('/login')
+                }}
+                className="mt-2 w-fit rounded-full bg-red-500 px-6 py-2 text-white"
+              >
+                Login
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+    </header>
+  )
+}
+
+export default Navbar

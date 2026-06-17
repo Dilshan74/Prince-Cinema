@@ -1,0 +1,18 @@
+﻿<svg width="360" height="760" viewBox="0 0 360 760" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="360" height="760" rx="36" fill="#FCF7F8"/>
+  <rect x="18" y="18" width="324" height="724" rx="28" fill="#FFFDFD" stroke="#EBCFD7" stroke-width="2"/>
+  <text x="36" y="72" font-family="Segoe UI, Arial, sans-serif" font-size="24" font-weight="700" fill="#4A1D2C">Prince Cinema</text>
+  <text x="36" y="98" font-family="Segoe UI, Arial, sans-serif" font-size="13" fill="#7D5260">FrameLayout stacked poster</text>
+  <rect x="36" y="128" width="288" height="256" rx="20" fill="#F4A5B8"/>
+  <rect x="36" y="128" width="288" height="256" rx="20" fill="#000000" fill-opacity="0.28"/>
+  <rect x="54" y="146" width="118" height="34" rx="10" fill="#FFF1F2"/>
+  <text x="70" y="168" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="700" fill="#9F1239">Tonight's Special</text>
+  <circle cx="180" cy="246" r="38" fill="#CCFFFFFF"/>
+  <polygon points="170,226 170,266 200,246" fill="#9F1239"/>
+  <rect x="36" y="304" width="288" height="80" rx="0" fill="#B34A1D2C"/>
+  <text x="56" y="334" font-family="Segoe UI, Arial, sans-serif" font-size="20" font-weight="700" fill="#FFFFFF">La La Land</text>
+  <text x="56" y="356" font-family="Segoe UI, Arial, sans-serif" font-size="13" fill="#FBCFE8">Romance Musical | 7:00 PM</text>
+  <rect x="56" y="448" width="128" height="42" rx="12" fill="#FCE7F3" stroke="#F4A5B8" stroke-width="2"/>
+  <text x="84" y="474" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="600" fill="#9F1239">View Details</text>
+  <text x="36" y="530" font-family="Segoe UI, Arial, sans-serif" font-size="13" fill="#6B4C57">Multiple layers share the same container area.</text>
+</svg>
