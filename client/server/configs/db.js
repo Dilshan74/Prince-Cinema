@@ -25,17 +25,17 @@ const connectDB = async () => {
       console.log('Database disconnected');
     });
 
-    // await mongoose.connect(mongoURI, {
-    //   maxPoolSize: 10,
-    //   minPoolSize: 5,
-    //   retryWrites: true,
-    //   w: 'majority',
-    //   serverSelectionTimeoutMS: 10000,
-    //   socketTimeoutMS: 45000,
-    //   family: 4,
-    // });
-    await mongoose.connect(mongoURI);
-    console.log("MongoDB Connected Successfully");
+    await mongoose.connect(mongoURI, {
+      maxPoolSize: 10,
+      minPoolSize: 5,
+      retryWrites: true,
+      w: 'majority',
+      serverSelectionTimeoutMS: 10000,
+      socketTimeoutMS: 45000,
+      family: 4,
+    });
+    // await mongoose.connect(mongoURI);
+    // console.log("MongoDB Connected Successfully");
   } catch (error) {
     console.log('\n✗ Connection failed:', error.message);
     console.log('\nTROUBLESHOOTING:');
