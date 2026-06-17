@@ -391,7 +391,7 @@ const MoviePageLayout = () => {
         <div className="absolute right-0 top-30 h-[320px] w-[320px] rounded-full bg-red-500/10 blur-[120px]" />
 
         <div className="relative mx-auto max-w-7xl">
-          <div ref={detailsRef} className="mb-3">
+          <div ref={detailsRef} className="mb-10">
             <p className="text-sm font-semibold tracking-wide text-white/90">Movie Details</p>
           </div>
 
