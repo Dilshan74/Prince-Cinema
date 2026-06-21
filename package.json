@@ -10,7 +10,7 @@
     "client": "cd client && npm run dev",
     "build": "cd client && npm run build",
     "preview": "cd client && npm run preview",
-    "start": "node server/server.js"
+    "start": "npm --prefix server start"
   },
   "devDependencies": {
     "concurrently": "^9.0.1"
