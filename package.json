@@ -4,8 +4,13 @@
   "description": "Prince Cinema - Movie Ticket Booking System",
   "private": true,
   "scripts": {
-
-
+    "install-all": "npm install && cd client && npm install && cd .. && cd server && npm install && cd ..",
+    "dev": "concurrently \"cd client && npm run dev\" \"cd server && npm run server\"",
+    "server": "cd server && npm run server",
+    "client": "cd client && npm run dev",
+    "build": "cd client && npm run build",
+    "preview": "cd client && npm run preview",
+    "start": "npm --prefix server start"
   },
   "devDependencies": {
     "concurrently": "^9.0.1"
