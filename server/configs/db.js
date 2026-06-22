@@ -4,9 +4,17 @@ const connectDB = async () => {
   try {
     let mongoURI = process.env.MONGODB_URI_DIRECT || process.env.MONGODB_URI || 'mongodb://localhost:27017/prince-cinema';
 
-    // If the direct URI came with query params but no database, insert it before the query string
-    if (!mongoURI.includes('/prince-cinema') && mongoURI.includes('?')) {
-      mongoURI = mongoURI.replace('?', '/prince-cinema?');
+    // If the URI contains query params but no database path, insert the default database before the query string.
+    // Use '/?' replacement to avoid producing an extra slash in the path.
+    const uriHasDb = /mongodb(?:\+srv)?:\/\/.+?\/.+/.test(mongoURI);
+    if (!uriHasDb) {
+      if (mongoURI.includes('/?')) {
+        mongoURI = mongoURI.replace('/?', '/prince-cinema?');
+      } else if (mongoURI.includes('?')) {
+        mongoURI = mongoURI.replace('?', '/prince-cinema?');
+      } else {
+        mongoURI = `${mongoURI.replace(/\/?$/, '')}/prince-cinema`;
+      }
     }
 
     console.log('Connecting to MongoDB...');
