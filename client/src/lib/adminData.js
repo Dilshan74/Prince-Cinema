@@ -530,3 +530,33 @@ export const addBooking = (booking) => {
 };
 
 export const bookingRows = getBookingRows();
+
+// Fetch now-playing movies from backend; fall back to local admin list on error
+export const fetchNowPlayingMovies = async (opts = {}) => {
+  try {
+    const base = typeof opts.baseUrl === 'string' ? opts.baseUrl : '';
+    const res = await fetch(`${base}/api/show/now-playing`);
+    if (!res.ok) throw new Error('Fetch failed');
+    const body = await res.json();
+    if (body?.success && Array.isArray(body.movies)) {
+      // Map TMDB movie shape to local admin movie shape used by AdminMovieGrid
+      const mapped = body.movies.map((m, idx) => ({
+        id: m.id,
+        title: m.title,
+        genre: (m.genre_ids || []).join(', ') || '—',
+        duration: 'TBA',
+        rating: m.vote_average ? String(m.vote_average) : 'TBA',
+        posterClassName: idx % 2 === 0 ? 'from-neutral-700 via-neutral-800 to-neutral-950' : 'from-slate-700 via-zinc-800 to-black',
+        accent: '#ff6f61',
+        shows: [],
+      }));
+      console.info('Fetched now-playing movies from backend:', mapped.length);
+      return mapped;
+    }
+    throw new Error('Invalid body');
+  } catch (err) {
+    // fallback to local admin list
+    console.warn('fetchNowPlayingMovies failed, using local list', err.message);
+    return getAdminMovies();
+  }
+}

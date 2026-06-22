@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { getAdminMovies } from '../../lib/adminData'
+import { fetchNowPlayingMovies } from '../../lib/adminData'
 import AdminPageHeader from '../../components/admin/AdminPageHeader'
 import AddShowForm from '../../components/admin/add-shows/AddShowForm'
 import MovieLibraryPanel from '../../components/admin/add-shows/MovieLibraryPanel'
@@ -7,8 +7,9 @@ import MovieLibraryPanel from '../../components/admin/add-shows/MovieLibraryPane
 const AddShows = () => {
   const [movies, setMovies] = useState([])
 
-  const refreshMovies = () => {
-    setMovies(getAdminMovies())
+  const refreshMovies = async () => {
+    const m = await fetchNowPlayingMovies()
+    setMovies(m)
   }
 
   useEffect(() => {

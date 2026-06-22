@@ -4,13 +4,21 @@ import AdminPageHeader from '../../components/admin/AdminPageHeader'
 import DemandSnapshotPanel from '../../components/admin/dashboard/DemandSnapshotPanel'
 import TopPerformingTitlesPanel from '../../components/admin/dashboard/TopPerformingTitlesPanel'
 import UpcomingReleasesPanel from '../../components/admin/dashboard/UpcomingReleasesPanel'
-import { getAdminMovies, dashboardStats, upcomingReleases } from '../../lib/adminData'
+import { fetchNowPlayingMovies, dashboardStats, upcomingReleases } from '../../lib/adminData'
 
 const Dashboard = () => {
   const [movies, setMovies] = useState([])
 
   useEffect(() => {
-    setMovies(getAdminMovies())
+    let mounted = true
+    const load = async () => {
+      const m = await fetchNowPlayingMovies()
+      if (mounted) setMovies(m)
+    }
+    load()
+    return () => {
+      mounted = false
+    }
   }, [])
 
   return (
