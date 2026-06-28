@@ -1,5 +1,5 @@
 import React from 'react'
-import { Route, Routes, useLocation } from 'react-router-dom'
+import { Route, Routes, useLocation, Navigate } from 'react-router-dom'
 import Navbar from './components/Navbar'
 import AdminLayout from './components/admin/AdminLayout'
 import Home from './pages/Home'
@@ -15,10 +15,12 @@ import Dashboard from './pages/Admin.jsx/Dashboard'
 import ListBookings from './pages/Admin.jsx/ListBookings'
 import ListShows from './pages/Admin.jsx/ListShows'
 import { Toaster } from 'react-hot-toast'
+import { useAppContext } from './context/AppContext'
 
 const App = () => {
   const location = useLocation()
   const isAdminRoute = location.pathname.startsWith('/admin')
+  const { user } = useAppContext()
 
   return (
     <>
@@ -35,7 +37,16 @@ const App = () => {
         <Route path="/movie/:id" element={<MovieDetails />} />
         <Route path="/my-bookings" element={<MyBookings />} />
         <Route path="/seat-layout" element={<SeatLayout />} />
-        <Route path="/admin" element={<AdminLayout />}>
+        <Route
+          path="/admin"
+          element={
+            user ? (
+              <AdminLayout />
+            ) : (
+              <Navigate to="/login?redirect=/admin" replace />
+            )
+          }
+        >
           <Route index element={<Dashboard />} />
           <Route path="add-shows" element={<AddShows />} />
           <Route path="list-shows" element={<ListShows />} />

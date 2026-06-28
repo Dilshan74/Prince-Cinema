@@ -283,8 +283,9 @@ export const addShow = async (req, res) => {
 //API get all shows from the database
 export const getAllShows = async (req, res) => {
     try {
-        const shows = await Show.find({showDateTime: {$gte: new Date()}}).populate('movie').sort({ showDateTime: 1 });
-        
+        const upcomingOnly = String(req.query.upcoming || 'false').toLowerCase() === 'true';
+        const filter = upcomingOnly ? { showDateTime: { $gte: new Date() } } : {};
+        const shows = await Show.find(filter).populate('movie').sort({ showDateTime: 1 });
         res.json({ success: true, shows });
     } catch (error) {
         console.error(error);
@@ -297,8 +298,7 @@ export const getShow = async (req, res) => {
     try {
         const { movieId } = req.params;
 
-        //get all upcoming shows for the movie
-        const shows = await Show.find({ movie: movieId, showDateTime: { $gte: new Date() } })
+        const shows = await Show.find({ movie: movieId, showDateTime: { $gte: new Date() } }).sort({ showDateTime: 1 });
         const movie = await Movie.findById(movieId);
         const dateTime = {};
 
@@ -307,14 +307,13 @@ export const getShow = async (req, res) => {
             if (!dateTime[date]) {
                 dateTime[date] = [];
             }
-            dateTime[date].push({ time: show.showDateTime, showId: show._id })
-
+            dateTime[date].push({ time: show.showDateTime, showId: show._id });
         });
 
-        res.json({ success: true, shows: Array.from(uniqueShowsMap), dateTime });
+        res.json({ success: true, movie, shows, dateTime });
     } catch (error) {
         console.error(error);
-        res.json({ success: false, message: 'error.message' });
+        res.json({ success: false, message: error.message });
     }
 }
 

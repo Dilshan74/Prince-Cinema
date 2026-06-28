@@ -1,63 +1,73 @@
-import Booking from '../models/booking.js';
+import Show from "../models/show";
+
+
+//Function to check availability of seats for a specific show
+const checkSeatAvailability = async (ShowId, selectedSeats) => {
+  try {
+    // Find the show by its ID
+    const showData = await Show.findById(ShowId);
+    if(!showData) return false; // Show not found
+
+    const occupiedSeats = showData.occupiedSeats || [];
+
+    const isAnySeatTaken = selectedSeats.some(seat => occupiedSeats[seat]);
+    return !isAnySeatTaken; // Return true if all selected seats are available
+  } catch (error) {
+    console.log("Error checking seat availability:", error);
+    return false; // Return false in case of an error
+  }   
+}
 
 export const createBooking = async (req, res) => {
   try {
-    const { userId, customer, movie, seats, total, bookedAt, status } = req.body;
+    const {userId } = req.auth();
+    const { showId, selectedSeats } = req.body;
+    const {origin } = req.headers;
 
-    if (!customer || !movie || !seats || !total) {
-      return res.status(400).json({ error: 'Missing required fields' });
+    //check if the seat is available for the selected show
+    const isAvailable = await checkSeatAvailability(showId, selectedSeats);
+    if (!isAvailable) {
+      return res.json({ success: false, message: "One or more selected seats are already booked." });
     }
 
-    const newBooking = new Booking({
-      userId: userId || null,
-      customer,
-      movie,
-      seats,
-      total,
-      bookedAt,
-      status: status || 'Confirmed',
-    });
+    //Get the show data
+    const showData = await Show.findById(showId).populate('movie');
 
-    await newBooking.save();
-    res.status(201).json({ success: true, booking: newBooking });
+    // Create a new booking 
+    const newBooking = await BookingsTable.create({
+      user: userId,
+      show: showId,
+      amount: showData.price * selectedSeats.length,
+      bookedSeats: selectedSeats,
+
+    })
+
+    selectedSeats.map(seat => {
+      showData.occupiedSeats[seat] = userId;
+    })
+
+    showData.markModified('occupiedSeats');
+    await showData.save();
+
+    //Stripe Gateway Integration
+    res.json({ success: true, message: "Booking created successfully"});
+
   } catch (error) {
-    console.error('Error creating booking:', error);
-    res.status(500).json({ error: 'Failed to create booking' });
+    console.log(error.message) ;
+    res.json({ success: false, message: "Error creating booking" });
   }
-};
+}
 
-export const getAllBookings = async (req, res) => {
+export const getOccupiedSeats = async (req, res) => {
   try {
-    const bookings = await Booking.find().sort({ createdAt: -1 });
-    res.status(200).json({ success: true, bookings });
+    const { showId } = req.params;
+    const showData = await Show.findById(showId);
+
+    const occupiedSeats = Object.keys(showData.occupiedSeats);
+    res.json({ success: true, occupiedSeats });
   } catch (error) {
-    console.error('Error fetching bookings:', error);
-    res.status(500).json({ error: 'Failed to fetch bookings' });
-  }
-};
+    console.log(error.message);
+    res.json({ success: false, message: "Error fetching occupied seats" });
+  } 
+}
 
-export const getUserBookings = async (req, res) => {
-  try {
-    const { userId } = req.params;
-
-    if (!userId) {
-      return res.status(400).json({ error: 'userId is required' });
-    }
-
-    const bookings = await Booking.find({ userId }).sort({ createdAt: -1 });
-    res.status(200).json({ success: true, bookings });
-  } catch (error) {
-    console.error('Error fetching user bookings:', error);
-    res.status(500).json({ error: 'Failed to fetch user bookings' });
-  }
-};
-
-export const getGuestBookings = async (req, res) => {
-  try {
-    const bookings = await Booking.find({ userId: null }).sort({ createdAt: -1 });
-    res.status(200).json({ success: true, bookings });
-  } catch (error) {
-    console.error('Error fetching guest bookings:', error);
-    res.status(500).json({ error: 'Failed to fetch guest bookings' });
-  }
-};
