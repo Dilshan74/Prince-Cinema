@@ -3,7 +3,8 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Armchair, CalendarDays, Clock3, MapPin, Ticket } from 'lucide-react'
 import toast from 'react-hot-toast'
 import Footer from '../components/Footer'
-import { addBooking } from '../lib/adminData'
+import { addBooking, createBookingAPI } from '../lib/adminData'
+import { getCurrentSession } from '../lib/auth'
 
 const leftBlock = [
   ['A1', 'A2', 'A3', 'A4'],
@@ -126,21 +127,30 @@ const SeatLayout = () => {
     })
   }
 
-  const handleSubmitBooking = () => {
+  const handleSubmitBooking = async () => {
     if (selectedSeats.length === 0) {
       toast.error('Please select at least one seat before submitting.')
       return
     }
 
     const total = `LKR ${selectedSeats.length * 1200}`
-    addBooking({
-      customer: 'Guest User',
+    const session = getCurrentSession()
+    const bookingData = {
+      userId: session?.userId || null,
+      customer: session?.username || 'Guest User',
       movie: selectedMovieTitle,
       seats: selectedSeats.join(', '),
       total,
       bookedAt: new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }),
       status: 'Confirmed',
-    })
+    }
+
+    // Try to save to backend first
+    const apiBooking = await createBookingAPI(bookingData)
+    if (!apiBooking) {
+      // Fall back to localStorage if API fails
+      addBooking(bookingData)
+    }
 
     toast.success('Your booking was submitted successfully!')
     setSelectedSeatsByHall((currentState) => ({

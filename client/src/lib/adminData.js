@@ -451,6 +451,7 @@ const BOOKINGS_STORAGE_KEY = 'prince-cinema-bookings';
 const defaultBookings = [
   {
     id: 'BK-2045',
+    userId: null,
     customer: 'Ishara Perera',
     movie: 'Deadpool & Wolverine',
     seats: 'F4, F5',
@@ -478,6 +479,7 @@ const defaultBookings = [
   },
   {
     id: 'BK-2048',
+    userId: null,
     customer: 'Dinara Jayasekara',
     movie: 'Mission: Impossible - Dead Reckoning Part One',
     seats: 'B1, B2',
@@ -504,6 +506,14 @@ export const getBookingRows = () => {
   return defaultBookings;
 };
 
+export const getBookingsForUser = (userId) => {
+  const bookings = getBookingRows();
+  if (!userId) {
+    return bookings.filter((booking) => booking.userId == null);
+  }
+  return bookings.filter((booking) => booking.userId === userId);
+};
+
 export const addBooking = (booking) => {
   if (typeof window === 'undefined') return null;
 
@@ -515,6 +525,7 @@ export const addBooking = (booking) => {
 
   const newBooking = {
     id: `BK-${nextIdNum}`,
+    userId: booking.userId || null,
     customer: booking.customer || 'Guest User',
     movie: booking.movie || 'Unknown movie',
     seats: booking.seats || '',
@@ -530,6 +541,60 @@ export const addBooking = (booking) => {
 };
 
 export const bookingRows = getBookingRows();
+
+// API functions for cross-device booking sync
+export const createBookingAPI = async (booking, baseUrl = '') => {
+  try {
+    const res = await fetch(`${baseUrl}/api/booking/create`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(booking),
+    });
+    if (!res.ok) throw new Error('Failed to create booking');
+    const { booking: newBooking } = await res.json();
+    return newBooking;
+  } catch (error) {
+    console.error('Error creating booking via API:', error);
+    return null;
+  }
+};
+
+export const getAllBookingsAPI = async (baseUrl = '') => {
+  try {
+    const res = await fetch(`${baseUrl}/api/booking/all`);
+    if (!res.ok) throw new Error('Failed to fetch bookings');
+    const { bookings } = await res.json();
+    return bookings || [];
+  } catch (error) {
+    console.error('Error fetching bookings via API:', error);
+    return [];
+  }
+};
+
+export const getUserBookingsAPI = async (userId, baseUrl = '') => {
+  try {
+    if (!userId) return [];
+    const res = await fetch(`${baseUrl}/api/booking/user/${userId}`);
+    if (!res.ok) throw new Error('Failed to fetch user bookings');
+    const { bookings } = await res.json();
+    return bookings || [];
+  } catch (error) {
+    console.error('Error fetching user bookings via API:', error);
+    return [];
+  }
+};
+
+export const getGuestBookingsAPI = async (baseUrl = '') => {
+  try {
+    const res = await fetch(`${baseUrl}/api/booking/guest`);
+    if (!res.ok) throw new Error('Failed to fetch guest bookings');
+    const { bookings } = await res.json();
+    return bookings || [];
+  } catch (error) {
+    console.error('Error fetching guest bookings via API:', error);
+    return [];
+  }
+};
 
 // Fetch now-playing movies from backend; fall back to local admin list on error
 export const fetchNowPlayingMovies = async (opts = {}) => {

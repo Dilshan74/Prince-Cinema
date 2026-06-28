@@ -1,16 +1,37 @@
 import React, { useEffect, useState } from 'react'
-import { getBookingRows } from '../lib/adminData'
+import { getBookingsForUser, getUserBookingsAPI } from '../lib/adminData'
+import { getCurrentSession } from '../lib/auth'
 import Footer from '../components/Footer'
 
 const MyBookings = () => {
-  const [bookings, setBookings] = useState(() => getBookingRows())
+  const [bookings, setBookings] = useState(() => getBookingsForUser(getCurrentSession()?.userId))
 
   useEffect(() => {
-    const refreshBookings = () => setBookings(getBookingRows())
-    refreshBookings()
-    window.addEventListener('bookings-updated', refreshBookings)
+    const fetchBookings = async () => {
+      const session = getCurrentSession()
+      // Try to fetch from backend API first
+      const apiBookings = await getUserBookingsAPI(session?.userId)
+      if (apiBookings && apiBookings.length > 0) {
+        setBookings(apiBookings)
+      } else if (session?.userId) {
+        // Fall back to localStorage for logged-in users
+        setBookings(getBookingsForUser(session.userId))
+      } else {
+        // For guests, show empty
+        setBookings([])
+      }
+    }
 
-    return () => window.removeEventListener('bookings-updated', refreshBookings)
+    fetchBookings()
+    
+    const refreshBookings = () => fetchBookings()
+    window.addEventListener('bookings-updated', refreshBookings)
+    window.addEventListener('storage', refreshBookings)
+
+    return () => {
+      window.removeEventListener('bookings-updated', refreshBookings)
+      window.removeEventListener('storage', refreshBookings)
+    }
   }, [])
 
   return (

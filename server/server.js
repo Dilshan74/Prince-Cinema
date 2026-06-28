@@ -8,6 +8,7 @@ import connectDB from './configs/db.js';
 import { serve } from "inngest/express";
 import { inngest, functions } from "./inngest/index.js";
 import showRoutes from './routes/showRoutes.js';
+import bookingRoutes from './routes/bookingRoutes.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -34,6 +35,7 @@ app.get('/', (req, res) => {
 
 app.use('/api/inngest', serve({ client: inngest, functions }));
 app.use('/api/show', showRoutes);
+app.use('/api/booking', bookingRoutes);
 console.log('Routes registered');
 
 app.get('/health', (req, res) => {

@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
+
 import { fetchNowPlayingMovies } from '../../lib/adminData'
 import AdminPageHeader from '../../components/admin/AdminPageHeader'
 import AddShowForm from '../../components/admin/add-shows/AddShowForm'
@@ -6,15 +7,32 @@ import MovieLibraryPanel from '../../components/admin/add-shows/MovieLibraryPane
 
 const AddShows = () => {
   const [movies, setMovies] = useState([])
+  const [loading, setLoading] = useState(false)
 
-  const refreshMovies = async () => {
-    const m = await fetchNowPlayingMovies()
-    setMovies(m)
-  }
+  const refreshMovies = useCallback(async () => {
+    setLoading(true)
+
+    try {
+      const res = await fetchNowPlayingMovies()
+
+      // FIX: correctly extract shows array
+      if (res?.success) {
+        setMovies(res.shows || [])
+      } else {
+        setMovies([])
+      }
+
+    } catch (error) {
+      console.error("Failed to fetch movies:", error)
+      setMovies([])
+    } finally {
+      setLoading(false)
+    }
+  }, [])
 
   useEffect(() => {
     refreshMovies()
-  }, [])
+  }, [refreshMovies])
 
   return (
     <section className="space-y-8">
@@ -26,7 +44,11 @@ const AddShows = () => {
 
       <div className="grid gap-6 xl:grid-cols-[0.95fr_1.2fr]">
         <AddShowForm onShowAdded={refreshMovies} />
-        <MovieLibraryPanel movies={movies} />
+
+        <MovieLibraryPanel
+          movies={movies}
+          loading={loading}
+        />
       </div>
     </section>
   )
