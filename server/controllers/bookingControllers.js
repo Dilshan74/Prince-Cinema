@@ -1,73 +1,188 @@
-import Show from "../models/show";
+import Show from "../models/show.js";
+import Booking from "../models/booking.js";
 
-
-//Function to check availability of seats for a specific show
-const checkSeatAvailability = async (ShowId, selectedSeats) => {
+// Check seat availability
+const checkSeatAvailability = async (showId, selectedSeats) => {
   try {
-    // Find the show by its ID
-    const showData = await Show.findById(ShowId);
-    if(!showData) return false; // Show not found
+    const show = await Show.findById(showId);
 
-    const occupiedSeats = showData.occupiedSeats || [];
+    if (!show) return false;
 
-    const isAnySeatTaken = selectedSeats.some(seat => occupiedSeats[seat]);
-    return !isAnySeatTaken; // Return true if all selected seats are available
+    const occupiedSeats = show.occupiedSeats || [];
+
+    const seatTaken = selectedSeats.some((seat) =>
+      occupiedSeats.includes(seat)
+    );
+
+    return !seatTaken;
   } catch (error) {
-    console.log("Error checking seat availability:", error);
-    return false; // Return false in case of an error
-  }   
-}
+    console.log(error);
+    return false;
+  }
+};
 
+// Create booking
 export const createBooking = async (req, res) => {
   try {
-    const {userId } = req.auth();
-    const { showId, selectedSeats } = req.body;
-    const {origin } = req.headers;
+    const {
+      userId,
+      customer,
+      movie,
+      showId,
+      selectedSeats,
+      total,
+    } = req.body;
 
-    //check if the seat is available for the selected show
-    const isAvailable = await checkSeatAvailability(showId, selectedSeats);
-    if (!isAvailable) {
-      return res.json({ success: false, message: "One or more selected seats are already booked." });
+    const available = await checkSeatAvailability(
+      showId,
+      selectedSeats
+    );
+
+    if (!available) {
+      return res.json({
+        success: false,
+        message: "Some seats are already booked.",
+      });
     }
 
-    //Get the show data
-    const showData = await Show.findById(showId).populate('movie');
+    const show = await Show.findById(showId);
 
-    // Create a new booking 
-    const newBooking = await BookingsTable.create({
-      user: userId,
-      show: showId,
-      amount: showData.price * selectedSeats.length,
-      bookedSeats: selectedSeats,
+    if (!show) {
+      return res.json({
+        success: false,
+        message: "Show not found.",
+      });
+    }
 
-    })
+    const booking = await Booking.create({
+      userId: userId || null,
+      customer,
+      movie,
+      seats: selectedSeats.join(", "),
+      total,
+      bookedAt: new Date().toLocaleString(),
+      status: "Confirmed",
+    });
 
-    selectedSeats.map(seat => {
-      showData.occupiedSeats[seat] = userId;
-    })
+    // Add seats into occupiedSeats array
+    show.occupiedSeats.push(...selectedSeats);
 
-    showData.markModified('occupiedSeats');
-    await showData.save();
+    await show.save();
 
-    //Stripe Gateway Integration
-    res.json({ success: true, message: "Booking created successfully"});
+    res.json({
+      success: true,
+      message: "Booking created successfully.",
+      booking,
+    });
 
   } catch (error) {
-    console.log(error.message) ;
-    res.json({ success: false, message: "Error creating booking" });
-  }
-}
+    console.log(error);
 
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// Get occupied seats
 export const getOccupiedSeats = async (req, res) => {
   try {
     const { showId } = req.params;
-    const showData = await Show.findById(showId);
 
-    const occupiedSeats = Object.keys(showData.occupiedSeats);
-    res.json({ success: true, occupiedSeats });
+    const show = await Show.findById(showId);
+
+    if (!show) {
+      return res.json({
+        success: false,
+        message: "Show not found.",
+      });
+    }
+
+    res.json({
+      success: true,
+      occupiedSeats: show.occupiedSeats,
+    });
+
   } catch (error) {
-    console.log(error.message);
-    res.json({ success: false, message: "Error fetching occupied seats" });
-  } 
-}
+    console.log(error);
 
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// Get all bookings
+export const getAllBookings = async (req, res) => {
+  try {
+    const bookings = await Booking.find().sort({
+      createdAt: -1,
+    });
+
+    res.json({
+      success: true,
+      bookings,
+    });
+
+  } catch (error) {
+    console.log(error);
+
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// Get one user's bookings
+export const getUserBookings = async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    const bookings = await Booking.find({ userId }).sort({
+      createdAt: -1,
+    });
+
+    res.json({
+      success: true,
+      bookings,
+    });
+
+  } catch (error) {
+    console.log(error);
+
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// Get guest bookings
+export const getGuestBookings = async (req, res) => {
+  try {
+    const bookings = await Booking.find({
+      $or: [
+        { userId: null },
+        { userId: "" },
+      ],
+    }).sort({
+      createdAt: -1,
+    });
+
+    res.json({
+      success: true,
+      bookings,
+    });
+
+  } catch (error) {
+    console.log(error);
+
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};

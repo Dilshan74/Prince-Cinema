@@ -1,61 +1,75 @@
 import React, { useState } from 'react'
-import { useSignUp } from '@clerk/react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import { Eye, EyeOff } from 'lucide-react'
 
 const Signup = () => {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const redirectTo = searchParams.get('redirect') || '/'
-  const { signUp, errors, fetchStatus } = useSignUp()
+  
   const [firstName, setFirstName] = useState('')
   const [lastName, setLastName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [serverError, setServerError] = useState('')
   const [successMessage, setSuccessMessage] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
-
-  const fieldErrors = [
-    errors.fields.firstName?.message,
-    errors.fields.lastName?.message,
-    errors.fields.emailAddress?.message,
-    errors.fields.password?.message,
-    errors.fields.username?.message,
-    errors.global?.map((error) => error.longMessage ?? error.message).join(' '),
-  ]
-    .filter(Boolean)
-    .join(' ')
 
   const handleSubmit = async (event) => {
     event.preventDefault()
     setServerError('')
     setSuccessMessage('')
+
+    // Validation
+    if (!firstName.trim()) {
+      setServerError('First name is required')
+      return
+    }
+    if (!lastName.trim()) {
+      setServerError('Last name is required')
+      return
+    }
+    if (!email.trim()) {
+      setServerError('Email is required')
+      return
+    }
+    if (!password.trim()) {
+      setServerError('Password is required')
+      return
+    }
+
     setIsSubmitting(true)
 
     try {
-      const { error } = await signUp.create({
-        emailAddress: email,
-        password,
-        firstName,
-        lastName,
+      const response = await fetch('http://localhost:3000/api/auth/signup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          firstName,
+          lastName,
+          email,
+          password,
+        }),
       })
 
-      if (error) {
-        setServerError(error.longMessage || error.message || 'Sign up failed.')
+      const data = await response.json()
+
+      if (!response.ok) {
+        setServerError(data.message || 'Sign up failed')
         return
       }
 
-      const loginRedirectUrl = redirectTo === '/' ? `/login?registered=true&email=${encodeURIComponent(email)}` : `/login?registered=true&email=${encodeURIComponent(email)}&redirect=${encodeURIComponent(redirectTo)}`
+      // Store token
+      localStorage.setItem('token', data.token)
+      setSuccessMessage('Sign up successful! Redirecting to sign in...')
 
-      if (signUp.status === 'complete') {
-        const { error: finalizeError } = await signUp.finalize()
-        if (finalizeError) {
-          setServerError(finalizeError.longMessage || finalizeError.message || 'Sign up could not be completed.')
-          return
-        }
-      }
-
-      navigate(loginRedirectUrl)
+      // Redirect to login
+      setTimeout(() => {
+        navigate(`/login?email=${encodeURIComponent(email)}&redirect=${encodeURIComponent(redirectTo)}`)
+      }, 1500)
     } catch (error) {
       setServerError(error?.message || 'An unexpected error occurred.')
     } finally {
@@ -81,71 +95,78 @@ const Signup = () => {
             </div>
 
             <div className="mx-auto w-full max-w-xl rounded-[30px] border border-slate-200 bg-slate-50 p-6 shadow-sm">
-              {serverError || successMessage || fieldErrors ? (
-                <div
-                  className={`mb-4 rounded-lg px-4 py-3 text-sm ${
-                    serverError || fieldErrors ? 'bg-red-50 border border-red-200 text-red-700' : 'bg-emerald-50 border border-emerald-200 text-emerald-700'
-                  }`}
-                >
-                  {serverError || fieldErrors || successMessage}
+              {serverError && (
+                <div className="mb-4 rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">
+                  {serverError}
                 </div>
-              ) : null}
+              )}
+
+              {successMessage && (
+                <div className="mb-4 rounded-lg bg-emerald-50 border border-emerald-200 px-4 py-3 text-sm text-emerald-700">
+                  {successMessage}
+                </div>
+              )}
 
               <form onSubmit={handleSubmit} className="space-y-5">
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">First name</label>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">First name *</label>
                   <input
                     type="text"
                     value={firstName}
                     onChange={(e) => setFirstName(e.target.value)}
-                    required
                     placeholder="First name"
                     className="w-full rounded-3xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">Last name</label>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Last name *</label>
                   <input
                     type="text"
                     value={lastName}
                     onChange={(e) => setLastName(e.target.value)}
-                    required
                     placeholder="Last name"
                     className="w-full rounded-3xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">Email address</label>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Email address *</label>
                   <input
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    required
                     placeholder="you@example.com"
                     className="w-full rounded-3xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">Password</label>
-                  <input
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                    placeholder="Create a password"
-                    className="w-full rounded-3xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
-                  />
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Password *</label>
+                  <div className="relative">
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="Create a password"
+                      className="w-full rounded-3xl border border-slate-300 bg-white px-4 py-3 pr-12 text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-700"
+                    >
+                      {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                    </button>
+                  </div>
                 </div>
 
                 <button
                   type="submit"
-                  disabled={isSubmitting || fetchStatus === 'fetching'}
+                  disabled={isSubmitting}
                   className="w-full rounded-3xl bg-[#1d5fd1] px-5 py-3 text-base font-semibold text-white transition hover:bg-[#1552b4] disabled:cursor-not-allowed disabled:bg-slate-400"
                 >
-                  {isSubmitting || fetchStatus === 'fetching' ? 'Signing up...' : 'Sign Up'}
+                  {isSubmitting ? 'Signing up...' : 'Sign Up'}
                 </button>
               </form>
 

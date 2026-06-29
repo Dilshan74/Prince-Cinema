@@ -9,6 +9,9 @@ import { serve } from "inngest/express";
 import { inngest, functions } from "./inngest/index.js";
 import showRoutes from './routes/showRoutes.js';
 import bookingRoutes from './routes/bookingRoutes.js';
+import authRoutes from './routes/authRoutes.js';
+import adminRoutes from './routes/adminRoutes.js';
+import userRoutes from './routes/userRoutes.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -35,6 +38,7 @@ app.get('/', (req, res) => {
 })
 
 app.use('/api/inngest', serve({ client: inngest, functions }));
+app.use('/api/auth', authRoutes);
 app.use('/api/show', showRoutes);
 app.use('/api/booking', bookingRoutes);
 app.use('/api/admin', adminRoutes);

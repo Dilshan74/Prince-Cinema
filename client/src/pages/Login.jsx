@@ -1,54 +1,71 @@
-import React, { useState } from 'react'
-import { useSignIn } from '@clerk/react'
+import React, { useState, useEffect } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import { Eye, EyeOff } from 'lucide-react'
 
 const Login = () => {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const redirectTo = searchParams.get('redirect') || '/'
-  const registered = searchParams.get('registered') === 'true'
   const initialEmail = searchParams.get('email') || ''
-  const { signIn, errors, fetchStatus } = useSignIn()
+  
   const [email, setEmail] = useState(initialEmail)
   const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [serverError, setServerError] = useState('')
+  const [successMessage, setSuccessMessage] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const fieldErrors = [
-    errors.fields.identifier?.message,
-    errors.fields.password?.message,
-    errors.global?.map((error) => error.longMessage ?? error.message).join(' '),
-  ]
-    .filter(Boolean)
-    .join(' ')
+  useEffect(() => {
+    // Check if coming from signup
+    const registered = searchParams.get('registered') === 'true'
+    if (registered) {
+      setSuccessMessage('Sign up successful. Please sign in with your new account.')
+    }
+  }, [searchParams])
 
   const handleSubmit = async (event) => {
     event.preventDefault()
     setServerError('')
+
+    // Validation
+    if (!email.trim()) {
+      setServerError('Email is required')
+      return
+    }
+    if (!password.trim()) {
+      setServerError('Password is required')
+      return
+    }
+
     setIsSubmitting(true)
 
     try {
-      const { error } = await signIn.create({
-        strategy: 'password',
-        identifier: email,
-        password,
+      const response = await fetch('http://localhost:3000/api/auth/signin', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email,
+          password,
+        }),
       })
 
-      if (error) {
-        setServerError(error.longMessage || error.message || 'Sign in failed.')
+      const data = await response.json()
+
+      if (!response.ok) {
+        setServerError(data.message || 'Sign in failed')
         return
       }
 
-      if (signIn.status === 'complete') {
-        const { error: finalizeError } = await signIn.finalize()
-        if (finalizeError) {
-          setServerError(finalizeError.longMessage || finalizeError.message || 'Sign in could not be completed.')
-          return
-        }
+      // Store token
+      localStorage.setItem('token', data.token)
+      setSuccessMessage('Sign in successful! Redirecting...')
+
+      // Redirect to the intended page
+      setTimeout(() => {
         navigate(redirectTo)
-      } else {
-        setServerError('Sign in is not complete. Please verify your email or try again.')
-      }
+      }, 1500)
     } catch (error) {
       setServerError(error?.message || 'An unexpected error occurred.')
     } finally {
@@ -86,48 +103,56 @@ const Login = () => {
             </div>
 
             <div className="mx-auto w-full max-w-xl rounded-[30px] border border-slate-200 bg-slate-50 p-6 shadow-sm">
-              {registered ? (
-                <div className="mb-4 rounded-lg bg-emerald-50 border border-emerald-200 p-4 text-sm text-emerald-700">
-                  Sign up successful. Please sign in with your new account.
+              {successMessage && (
+                <div className="mb-4 rounded-lg bg-emerald-50 border border-emerald-200 px-4 py-3 text-sm text-emerald-700">
+                  {successMessage}
                 </div>
-              ) : null}
-              {serverError || fieldErrors ? (
-                <div className="mb-4 rounded-lg bg-red-50 border border-red-200 p-4 text-sm text-red-700">
-                  {serverError || fieldErrors}
+              )}
+
+              {serverError && (
+                <div className="mb-4 rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">
+                  {serverError}
                 </div>
-              ) : null}
+              )}
 
               <form onSubmit={handleSubmit} className="space-y-5">
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">Email address</label>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Email address *</label>
                   <input
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    required
                     placeholder="you@example.com"
                     className="w-full rounded-3xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">Password</label>
-                  <input
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                    placeholder="••••••••"
-                    className="w-full rounded-3xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
-                  />
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Password *</label>
+                  <div className="relative">
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="••••••••"
+                      className="w-full rounded-3xl border border-slate-300 bg-white px-4 py-3 pr-12 text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-700"
+                    >
+                      {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                    </button>
+                  </div>
                 </div>
 
                 <button
                   type="submit"
-                  disabled={isSubmitting || fetchStatus === 'fetching'}
+                  disabled={isSubmitting}
                   className="w-full rounded-3xl bg-[#1d5fd1] px-5 py-3 text-base font-semibold text-white transition hover:bg-[#1552b4] disabled:cursor-not-allowed disabled:bg-slate-400"
                 >
-                  {isSubmitting || fetchStatus === 'fetching' ? 'Signing in...' : 'Sign In'}
+                  {isSubmitting ? 'Signing in...' : 'Sign In'}
                 </button>
               </form>
 

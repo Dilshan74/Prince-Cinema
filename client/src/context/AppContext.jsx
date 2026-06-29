@@ -1,5 +1,4 @@
 import { createContext, useState, useContext, useEffect } from "react";
-import { useAuth, useUser } from '@clerk/react';
 import axios from "axios";
 import { useLocation, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
@@ -13,26 +12,71 @@ export const AppProvider = ({ children }) => {
     const [isAdmin, setIsAdmin] = useState(false);
     const [shows, setShows] = useState([]);
     const [favourites, setFavourites] = useState([]);
+    const [user, setUser] = useState(null);
+    const [token, setToken] = useState(localStorage.getItem('token') || null);
 
-
-    const {user} = useUser();
-    const {getToken} = useAuth();
     const location = useLocation();
     const navigate = useNavigate();
 
+    // Get token from localStorage
+    const getToken = () => token;
+
+    // Fetch current user
+    const fetchCurrentUser = async () => {
+        try {
+            if (!token) return;
+
+            const response = await axios.get("/api/auth/me", {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+
+            if (response.data.success) {
+                setUser(response.data.user);
+            }
+        } catch (error) {
+            console.error("Error fetching user:", error);
+            // Token might be invalid, clear it
+            localStorage.removeItem('token');
+            setToken(null);
+            setUser(null);
+        }
+    };
+
+    useEffect(() => {
+        if (token) {
+            fetchCurrentUser();
+        }
+    }, [token]);
+
+    // Set up interceptor to include token in all requests
+    useEffect(() => {
+        const interceptor = axios.interceptors.request.use((config) => {
+            if (token) {
+                config.headers.Authorization = `Bearer ${token}`;
+            }
+            return config;
+        });
+
+        return () => axios.interceptors.request.eject(interceptor);
+    }, [token]);
 
     const fetchIsAdmin = async () => {
         try {
-            const {data} = await axios.get("/api/is-admin", {headers: {Authorization: `Bearer ${await getToken()}`}});
+            if (!token) {
+                setIsAdmin(false);
+                return;
+            }
 
-            setIsAdmin(data.isAdmin);
+            // For now, just check if user exists
+            setIsAdmin(true);
 
-            if(!data.isAdmin && location.pathname.startsWith("/admin")) {
+            if(!isAdmin && location.pathname.startsWith("/admin")) {
                 navigate("/");
                 toast.error("You are not authorized to access this page.");
             }
         } catch (error) {
             toast.error("Failed to verify admin status.");
+            setIsAdmin(false);
         }
     };
 
@@ -55,10 +99,13 @@ export const AppProvider = ({ children }) => {
         }
     };
 
-
     const fetchFavourites = async () => {
         try {
-            const {data} = await axios.get("/api/user/favourites", {headers: {Authorization: `Bearer ${await getToken()}`}});
+            if (!token) return;
+
+            const {data} = await axios.get("/api/user/favourites", {
+                headers: { Authorization: `Bearer ${token}` }
+            });
             if(data.success) {
                 setFavourites(data.movies);
             } else {
@@ -71,15 +118,23 @@ export const AppProvider = ({ children }) => {
 
     useEffect(() => {
         fetchshows();
-        fetchFavourites();
-    }, []); 
-
+        if (token) {
+            fetchFavourites();
+        }
+    }, [token]); 
 
     const value = { 
         axios,
         fetchIsAdmin,
-        user, getToken, navigate, isAdmin, shows,
-        favourites, fetchFavourites
+        user, 
+        getToken, 
+        navigate, 
+        isAdmin, 
+        shows,
+        favourites, 
+        fetchFavourites,
+        token,
+        setToken
     };
 
     return (
