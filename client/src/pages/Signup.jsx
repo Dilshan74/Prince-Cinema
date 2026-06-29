@@ -6,7 +6,7 @@ const Signup = () => {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const redirectTo = searchParams.get('redirect') || '/'
-  
+
   const [firstName, setFirstName] = useState('')
   const [lastName, setLastName] = useState('')
   const [email, setEmail] = useState('')
@@ -42,18 +42,21 @@ const Signup = () => {
     setIsSubmitting(true)
 
     try {
-      const response = await fetch('http://localhost:3000/api/auth/signup', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          firstName,
-          lastName,
-          email,
-          password,
-        }),
-      })
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/api/auth/signup`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            firstName,
+            lastName,
+            email,
+            password,
+          }),
+        }
+      )
 
       const data = await response.json()
 
@@ -66,9 +69,12 @@ const Signup = () => {
       localStorage.setItem('token', data.token)
       setSuccessMessage('Sign up successful! Redirecting to sign in...')
 
-      // Redirect to login
       setTimeout(() => {
-        navigate(`/login?email=${encodeURIComponent(email)}&redirect=${encodeURIComponent(redirectTo)}`)
+        navigate(
+          `/login?email=${encodeURIComponent(email)}&redirect=${encodeURIComponent(
+            redirectTo
+          )}`
+        )
       }, 1500)
     } catch (error) {
       setServerError(error?.message || 'An unexpected error occurred.')
@@ -85,114 +91,109 @@ const Signup = () => {
 
       <div className="mx-auto flex min-h-[calc(100vh-96px)] max-w-7xl items-center justify-center py-10">
         <div className="grid w-full gap-8 overflow-hidden rounded-[32px] border border-white/20 bg-white/90 shadow-[0_30px_120px_rgba(15,23,42,0.18)] backdrop-blur-xl lg:grid-cols-[0.95fr_1.05fr]">
+
+          {/* LEFT SIDE */}
           <div className="bg-white p-8 md:p-10">
             <div className="mb-8 text-center">
-              <p className="text-sm font-semibold tracking-[0.26em] text-[#1d5fd1] uppercase">Sign Up</p>
-              <h1 className="mt-3 text-3xl font-semibold text-slate-900 md:text-4xl">Create your movie account</h1>
+              <p className="text-sm font-semibold tracking-[0.26em] text-[#1d5fd1] uppercase">
+                Sign Up
+              </p>
+              <h1 className="mt-3 text-3xl font-semibold text-slate-900 md:text-4xl">
+                Create your movie account
+              </h1>
               <p className="mt-4 text-sm leading-7 text-slate-600 md:text-base">
-                Register with Prince Cinema using your email and a password.
+                Register with Prince Cinema using your email and password.
               </p>
             </div>
 
             <div className="mx-auto w-full max-w-xl rounded-[30px] border border-slate-200 bg-slate-50 p-6 shadow-sm">
+
               {serverError && (
-                <div className="mb-4 rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">
+                <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
                   {serverError}
                 </div>
               )}
 
               {successMessage && (
-                <div className="mb-4 rounded-lg bg-emerald-50 border border-emerald-200 px-4 py-3 text-sm text-emerald-700">
+                <div className="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
                   {successMessage}
                 </div>
               )}
 
               <form onSubmit={handleSubmit} className="space-y-5">
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">First name *</label>
-                  <input
-                    type="text"
-                    value={firstName}
-                    onChange={(e) => setFirstName(e.target.value)}
-                    placeholder="First name"
-                    className="w-full rounded-3xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
-                  />
-                </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">Last name *</label>
-                  <input
-                    type="text"
-                    value={lastName}
-                    onChange={(e) => setLastName(e.target.value)}
-                    placeholder="Last name"
-                    className="w-full rounded-3xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
-                  />
-                </div>
+                <input
+                  type="text"
+                  placeholder="First name"
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                  className="w-full rounded-3xl border border-slate-300 bg-white px-4 py-3"
+                />
 
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">Email address *</label>
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="you@example.com"
-                    className="w-full rounded-3xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
-                  />
-                </div>
+                <input
+                  type="text"
+                  placeholder="Last name"
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                  className="w-full rounded-3xl border border-slate-300 bg-white px-4 py-3"
+                />
 
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">Password *</label>
-                  <div className="relative">
-                    <input
-                      type={showPassword ? 'text' : 'password'}
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      placeholder="Create a password"
-                      className="w-full rounded-3xl border border-slate-300 bg-white px-4 py-3 pr-12 text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-700"
-                    >
-                      {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-                    </button>
-                  </div>
+                <input
+                  type="email"
+                  placeholder="Email address"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full rounded-3xl border border-slate-300 bg-white px-4 py-3"
+                />
+
+                <div className="relative">
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    placeholder="Password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="w-full rounded-3xl border border-slate-300 bg-white px-4 py-3 pr-12"
+                  />
+
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2"
+                  >
+                    {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                  </button>
                 </div>
 
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full rounded-3xl bg-[#1d5fd1] px-5 py-3 text-base font-semibold text-white transition hover:bg-[#1552b4] disabled:cursor-not-allowed disabled:bg-slate-400"
+                  className="w-full rounded-3xl bg-[#1d5fd1] py-3 font-semibold text-white"
                 >
                   {isSubmitting ? 'Signing up...' : 'Sign Up'}
                 </button>
+
               </form>
 
               <p className="mt-6 text-center text-sm text-slate-600">
                 Already have an account?{' '}
-                <Link to={`/login?redirect=${encodeURIComponent(redirectTo)}`} className="font-semibold text-[#1d5fd1] hover:text-[#154b99]">
+                <Link
+                  to={`/login?redirect=${encodeURIComponent(redirectTo)}`}
+                  className="font-semibold text-[#1d5fd1]"
+                >
                   Sign in
                 </Link>
               </p>
             </div>
           </div>
 
+          {/* RIGHT SIDE */}
           <div className="bg-[linear-gradient(165deg,#0b2040_0%,#153f7a_58%,#3b82f6_100%)] px-8 py-10 text-white md:px-12">
-            <div className="rounded-[24px] border border-white/10 bg-white/10 p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.16)] backdrop-blur-sm">
-              <p className="text-sm font-semibold uppercase tracking-[0.22em] text-white/80">Start Now</p>
-              <h2 className="mt-6 text-4xl font-semibold leading-tight md:text-5xl">Join Prince Cinema</h2>
-              <p className="mt-4 max-w-xl text-sm leading-7 text-white/80 md:text-base">
-                Create your account and keep your bookings safe across devices.
-              </p>
-            </div>
-            <div className="mt-8 space-y-4 rounded-[24px] border border-white/10 bg-white/10 p-6 text-white/90 shadow-[inset_0_1px_0_rgba(255,255,255,0.16)] backdrop-blur-sm">
-              <p className="font-semibold text-white">One account for all bookings</p>
-              <p className="text-sm text-white/80">Create your account once and use it across the entire Prince Cinema experience.</p>
-              <p className="text-sm text-white/80">Save favorites, manage bookings, and checkout faster.</p>
-            </div>
+            <h2 className="text-4xl font-semibold">Join Prince Cinema</h2>
+            <p className="mt-4 text-white/80">
+              Create your account and enjoy seamless booking experience.
+            </p>
           </div>
+
         </div>
       </div>
     </main>
