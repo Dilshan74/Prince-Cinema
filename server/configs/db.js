@@ -1,4 +1,13 @@
 import mongoose from 'mongoose';
+import dns from 'dns';
+
+// Force Node.js to use public DNS servers to resolve MongoDB Atlas SRV records.
+// This prevents querySrv ECONNREFUSED/ENOTFOUND errors.
+try {
+  dns.setServers(['8.8.8.8', '1.1.1.1']);
+} catch (err) {
+  console.warn('Failed to set custom DNS servers for resolution:', err.message);
+}
 
 const connectDB = async () => {
   try {
