@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { Eye, EyeOff } from 'lucide-react'
+import { useAppContext } from '../context/AppContext'
 
 const Login = () => {
   const navigate = useNavigate()
+  const { setToken } = useAppContext()
   const [searchParams] = useSearchParams()
   const redirectTo = searchParams.get('redirect') || '/'
   const initialEmail = searchParams.get('email') || ''
@@ -62,6 +64,7 @@ const Login = () => {
 
       // Store token
       localStorage.setItem('token', data.token)
+      setToken(data.token)
       setSuccessMessage('Sign in successful! Redirecting...')
 
       setTimeout(() => {

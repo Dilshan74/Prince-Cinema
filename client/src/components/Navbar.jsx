@@ -2,13 +2,13 @@ import React from 'react'
 import { Link, NavLink, useNavigate } from 'react-router-dom'
 import { Search, Menu, X, BadgeCheck, LogOut } from 'lucide-react'
 import { assets } from '../assets/assets'
-import { authChangeEventName, getCurrentSession, logoutUser } from '../lib/auth'
+import { useAppContext } from '../context/AppContext'
 
 const Navbar = () => {
   const navigate = useNavigate()
   const [isMenuOpen, setIsMenuOpen] = React.useState(false)
   const [isScrolled, setIsScrolled] = React.useState(false)
-  const [session, setSession] = React.useState(() => getCurrentSession())
+  const { user, setToken } = useAppContext()
   const [isSearchOpen, setIsSearchOpen] = React.useState(false)
   const [searchValue, setSearchValue] = React.useState('')
 
@@ -23,20 +23,7 @@ const Navbar = () => {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
-  React.useEffect(() => {
-    const syncSession = () => {
-      setSession(getCurrentSession())
-    }
 
-    syncSession()
-    window.addEventListener('storage', syncSession)
-    window.addEventListener(authChangeEventName, syncSession)
-
-    return () => {
-      window.removeEventListener('storage', syncSession)
-      window.removeEventListener(authChangeEventName, syncSession)
-    }
-  }, [])
 
   const navLinks = [
     { name: 'Home', path: '/' },
@@ -46,7 +33,8 @@ const Navbar = () => {
   ]
 
   const handleLogout = () => {
-    logoutUser()
+    localStorage.removeItem('token')
+    setToken(null)
     setIsMenuOpen(false)
     navigate('/')
   }
@@ -132,7 +120,7 @@ const Navbar = () => {
             </button>
           </div>
 
-          {session ? (
+          {user ? (
             <>
               <div
                 className={`inline-flex items-center gap-2 rounded-full border px-4 py-2.5 text-sm font-semibold text-emerald-300 backdrop-blur-xl ${
@@ -142,7 +130,7 @@ const Navbar = () => {
                 }`}
               >
                 <BadgeCheck className="h-4.5 w-4.5 fill-emerald-400/20 text-emerald-400" />
-                <span>{session.username || 'Logged In'}</span>
+                <span>{user.firstName || 'Logged In'}</span>
               </div>
 
               <button
@@ -215,11 +203,11 @@ const Navbar = () => {
               </NavLink>
             ))}
 
-            {session ? (
+            {user ? (
               <>
                 <div className="mt-2 inline-flex w-fit items-center gap-2 rounded-full border border-emerald-400/25 bg-emerald-500/10 px-4 py-2 text-sm font-semibold text-emerald-300">
                   <BadgeCheck className="h-4 w-4 text-emerald-400" />
-                  <span>{session.username || 'Logged In'}</span>
+                  <span>{user.firstName || 'Logged In'}</span>
                 </div>
 
                 <button
