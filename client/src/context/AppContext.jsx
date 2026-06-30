@@ -45,6 +45,10 @@ export const AppProvider = ({ children }) => {
     useEffect(() => {
         if (token) {
             fetchCurrentUser();
+        } else {
+            setUser(null);
+            setIsAdmin(false);
+            setFavourites([]);
         }
     }, [token]);
 
