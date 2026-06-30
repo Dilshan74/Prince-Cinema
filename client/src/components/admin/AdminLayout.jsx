@@ -1,7 +1,8 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { NavLink, Outlet } from 'react-router-dom'
-import { Film, LayoutDashboard, ListVideo, Ticket, UserRound } from 'lucide-react'
+import { Film, LayoutDashboard, ListVideo, Ticket, UserRound, LogOut, Lock, Eye, EyeOff } from 'lucide-react'
 import { assets } from '../../assets/assets'
+import { useAppContext } from '../../context/AppContext'
 
 const navigationItems = [
   {
@@ -61,7 +62,98 @@ const AdminFooter = () => {
   )
 }
 
+// Admin Login Gate
+const AdminLoginGate = () => {
+  const { adminLogin } = useAppContext()
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
+  const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    setError('')
+    setLoading(true)
+    const result = await adminLogin(email, password)
+    if (!result.success) {
+      setError(result.message || 'Invalid admin credentials')
+    }
+    setLoading(false)
+  }
+
+  return (
+    <div className="min-h-screen bg-[#05060a] flex items-center justify-center px-4">
+      <div className="w-full max-w-md">
+        <div className="text-center mb-8">
+          <img src={assets.logo} alt="Prince Cinema" className="h-10 w-auto mx-auto mb-6" />
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-[#ff4b6a]/10 border border-[#ff4b6a]/20 mb-4">
+            <Lock className="w-7 h-7 text-[#ff4b6a]" />
+          </div>
+          <h1 className="text-2xl font-bold text-white mt-3">Admin Access</h1>
+          <p className="text-white/45 text-sm mt-2">Sign in with your admin credentials</p>
+        </div>
+
+        <form onSubmit={handleSubmit} className="bg-white/[0.04] border border-white/10 rounded-2xl p-8 space-y-5">
+          {error && (
+            <div className="bg-red-500/10 border border-red-500/20 rounded-lg px-4 py-3 text-sm text-red-400">
+              {error}
+            </div>
+          )}
+
+          <div>
+            <label className="block text-sm font-medium text-white/70 mb-2">Email</label>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="admin@example.com"
+              required
+              className="w-full rounded-xl border border-white/10 bg-white/[0.05] px-4 py-3 text-white placeholder-white/25 outline-none focus:border-[#ff4b6a]/50 focus:ring-1 focus:ring-[#ff4b6a]/30 transition"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-white/70 mb-2">Password</label>
+            <div className="relative">
+              <input
+                type={showPassword ? 'text' : 'password'}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+                required
+                className="w-full rounded-xl border border-white/10 bg-white/[0.05] px-4 py-3 pr-12 text-white placeholder-white/25 outline-none focus:border-[#ff4b6a]/50 focus:ring-1 focus:ring-[#ff4b6a]/30 transition"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/70 transition"
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
+          </div>
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full rounded-xl bg-[#ff4b6a] py-3 font-semibold text-white hover:bg-[#e03558] disabled:opacity-50 disabled:cursor-not-allowed transition"
+          >
+            {loading ? 'Verifying...' : 'Sign In as Admin'}
+          </button>
+        </form>
+      </div>
+    </div>
+  )
+}
+
 const AdminLayout = () => {
+  const { isAdmin, adminLogout } = useAppContext()
+
+  if (!isAdmin) {
+    return <AdminLoginGate />
+  }
+
   return (
     <div className="min-h-screen bg-[#05060a] text-white">
       <div className="flex min-h-screen flex-col lg:flex-row">
@@ -117,10 +209,20 @@ const AdminLayout = () => {
             ))}
           </nav>
 
-          <div className="mt-8 rounded-lg border border-[#ff4b6a]/18 bg-[#ff4b6a]/10 p-4">
+          <div className="mt-8 rounded-lg border border-white/10 bg-white/[0.03] p-4">
             <p className="text-sm font-semibold text-white">Today</p>
             <p className="mt-2 text-sm text-white/55">Manage shows and bookings from the menu.</p>
           </div>
+
+          <button
+            onClick={adminLogout}
+            className="mt-4 flex w-full items-center gap-3 rounded-lg border border-red-500/20 bg-red-500/5 px-4 py-3 text-sm font-medium text-red-400 hover:bg-red-500/10 transition"
+          >
+            <span className="flex h-9 w-9 items-center justify-center rounded-md bg-black/30">
+              <LogOut className="h-4 w-4" />
+            </span>
+            <span>Logout</span>
+          </button>
         </aside>
 
         <main className="flex min-w-0 flex-1 flex-col">
@@ -138,3 +240,4 @@ const AdminLayout = () => {
 }
 
 export default AdminLayout
+

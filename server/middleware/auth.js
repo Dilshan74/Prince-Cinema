@@ -1,7 +1,5 @@
 import jwt from 'jsonwebtoken';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
-
 export const verifyToken = (req, res, next) => {
     try {
         const token = req.headers.authorization?.split(' ')[1] || req.cookies?.token;
@@ -13,7 +11,7 @@ export const verifyToken = (req, res, next) => {
             });
         }
 
-        const decoded = jwt.verify(token, JWT_SECRET);
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key-change-in-production');
         req.userId = decoded.userId;
         next();
     } catch (error) {
@@ -26,24 +24,37 @@ export const verifyToken = (req, res, next) => {
 
 export const protectAdmin = (req, res, next) => {
     try {
-        const token = req.headers.authorization?.split(' ')[1] || req.cookies?.token;
+        const token =
+            req.headers.authorization?.split(" ")[1] ||
+            req.cookies?.token;
 
         if (!token) {
             return res.status(401).json({
                 success: false,
-                message: 'No token provided'
+                message: "No token"
             });
         }
 
-        const decoded = jwt.verify(token, JWT_SECRET);
-        req.userId = decoded.userId;
-        
-        // Add more admin checks here if needed
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key-change-in-production');
+
+        if (
+            decoded.email !== process.env.ADMIN_EMAIL ||
+            decoded.role !== "admin"
+        ) {
+            return res.status(403).json({
+                success: false,
+                message: "Access denied"
+            });
+        }
+
+        req.admin = decoded;
+
         next();
+
     } catch (error) {
-        res.status(401).json({
+        return res.status(401).json({
             success: false,
-            message: 'Invalid token'
+            message: "Invalid token"
         });
     }
 };

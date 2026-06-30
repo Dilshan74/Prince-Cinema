@@ -1,6 +1,8 @@
 import express from "express";
 import { protectAdmin } from "../middleware/auth.js";
+
 import {
+  adminLogin,
   isAdmin,
   getDashboardData,
   getAllShows,
@@ -8,6 +10,8 @@ import {
 } from "../controllers/adminController.js";
 
 const adminRoutes = express.Router();
+
+adminRoutes.post("/login", adminLogin);
 
 adminRoutes.get("/is-admin", protectAdmin, isAdmin);
 adminRoutes.get("/dashboard", protectAdmin, getDashboardData);

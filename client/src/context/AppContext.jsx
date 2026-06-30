@@ -14,6 +14,7 @@ export const AppProvider = ({ children }) => {
     const [favourites, setFavourites] = useState([]);
     const [user, setUser] = useState(null);
     const [token, setToken] = useState(localStorage.getItem('token') || null);
+    const [adminToken, setAdminToken] = useState(localStorage.getItem('adminToken') || null);
 
     const location = useLocation();
     const navigate = useNavigate();
@@ -47,7 +48,6 @@ export const AppProvider = ({ children }) => {
             fetchCurrentUser();
         } else {
             setUser(null);
-            setIsAdmin(false);
             setFavourites([]);
         }
     }, [token]);
@@ -64,31 +64,69 @@ export const AppProvider = ({ children }) => {
         return () => axios.interceptors.request.eject(interceptor);
     }, [token]);
 
+    // Verify admin status with the backend using adminToken
     const fetchIsAdmin = async () => {
         try {
-            if (!token) {
+            const storedAdminToken = localStorage.getItem('adminToken');
+            if (!storedAdminToken) {
                 setIsAdmin(false);
-                return;
+                return false;
             }
 
-            // For now, just check if user exists
-            setIsAdmin(true);
+            const response = await axios.get("/api/admin/is-admin", {
+                headers: { Authorization: `Bearer ${storedAdminToken}` }
+            });
 
-            if(!isAdmin && location.pathname.startsWith("/admin")) {
-                navigate("/");
-                toast.error("You are not authorized to access this page.");
+            if (response.data.success) {
+                setIsAdmin(true);
+                setAdminToken(storedAdminToken);
+                return true;
+            } else {
+                setIsAdmin(false);
+                localStorage.removeItem('adminToken');
+                setAdminToken(null);
+                return false;
             }
         } catch (error) {
-            toast.error("Failed to verify admin status.");
             setIsAdmin(false);
+            localStorage.removeItem('adminToken');
+            setAdminToken(null);
+            return false;
         }
     };
 
-    useEffect(() => {
-        if(user) {
-            fetchIsAdmin();
+    // Admin login function
+    const adminLogin = async (email, password) => {
+        try {
+            const response = await axios.post("/api/admin/login", { email, password });
+            if (response.data.success) {
+                localStorage.setItem('adminToken', response.data.token);
+                setAdminToken(response.data.token);
+                setIsAdmin(true);
+                return { success: true };
+            } else {
+                return { success: false, message: response.data.message };
+            }
+        } catch (error) {
+            return { success: false, message: error.response?.data?.message || "Login failed" };
         }
-    }, [user]);
+    };
+
+    // Admin logout function
+    const adminLogout = () => {
+        localStorage.removeItem('adminToken');
+        setAdminToken(null);
+        setIsAdmin(false);
+        navigate('/');
+    };
+
+    useEffect(() => {
+        if (adminToken) {
+            fetchIsAdmin();
+        } else {
+            setIsAdmin(false);
+        }
+    }, []);
 
     const fetchshows = async () => {
         try {
@@ -130,6 +168,9 @@ export const AppProvider = ({ children }) => {
     const value = { 
         axios,
         fetchIsAdmin,
+        adminLogin,
+        adminLogout,
+        adminToken,
         user, 
         getToken, 
         navigate, 

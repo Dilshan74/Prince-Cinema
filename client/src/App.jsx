@@ -20,7 +20,7 @@ import { useAppContext } from './context/AppContext'
 const App = () => {
   const location = useLocation()
   const isAdminRoute = location.pathname.startsWith('/admin')
-  const { user } = useAppContext()
+  const { user, isAdmin } = useAppContext()
 
   return (
     <>
@@ -39,13 +39,7 @@ const App = () => {
         <Route path="/seat-layout" element={<SeatLayout />} />
         <Route
           path="/admin"
-          element={
-            user ? (
-              <AdminLayout />
-            ) : (
-              <Navigate to="/login?redirect=/admin" replace />
-            )
-          }
+          element={<AdminLayout />}
         >
           <Route index element={<Dashboard />} />
           <Route path="add-shows" element={<AddShows />} />
