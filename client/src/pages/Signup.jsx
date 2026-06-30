@@ -71,7 +71,7 @@ const Signup = () => {
 
       setTimeout(() => {
         navigate(
-          `/login?email=${encodeURIComponent(email)}&redirect=${encodeURIComponent(
+          `/login?registered=true&email=${encodeURIComponent(email)}&redirect=${encodeURIComponent(
             redirectTo
           )}`
         )
@@ -121,53 +121,72 @@ const Signup = () => {
               )}
 
               <form onSubmit={handleSubmit} className="space-y-5">
-
-                <input
-                  type="text"
-                  placeholder="First name"
-                  value={firstName}
-                  onChange={(e) => setFirstName(e.target.value)}
-                  className="w-full rounded-3xl border border-slate-300 bg-white px-4 py-3"
-                />
-
-                <input
-                  type="text"
-                  placeholder="Last name"
-                  value={lastName}
-                  onChange={(e) => setLastName(e.target.value)}
-                  className="w-full rounded-3xl border border-slate-300 bg-white px-4 py-3"
-                />
-
-                <input
-                  type="email"
-                  placeholder="Email address"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full rounded-3xl border border-slate-300 bg-white px-4 py-3"
-                />
-
-                <div className="relative">
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-slate-700 text-left">
+                    First Name *
+                  </label>
                   <input
-                    type={showPassword ? 'text' : 'password'}
-                    placeholder="Password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="w-full rounded-3xl border border-slate-300 bg-white px-4 py-3 pr-12"
+                    type="text"
+                    placeholder="First name"
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
+                    className="w-full rounded-3xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
                   />
+                </div>
 
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-4 top-1/2 -translate-y-1/2"
-                  >
-                    {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-                  </button>
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-slate-700 text-left">
+                    Last Name *
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Last name"
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
+                    className="w-full rounded-3xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+                  />
+                </div>
+
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-slate-700 text-left">
+                    Email address *
+                  </label>
+                  <input
+                    type="email"
+                    placeholder="Email address"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="w-full rounded-3xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+                  />
+                </div>
+
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-slate-700 text-left">
+                    Password *
+                  </label>
+                  <div className="relative">
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      placeholder="Password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className="w-full rounded-3xl border border-slate-300 bg-white px-4 py-3 pr-12 text-slate-900 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+                    />
+
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500"
+                    >
+                      {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                    </button>
+                  </div>
                 </div>
 
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full rounded-3xl bg-[#1d5fd1] py-3 font-semibold text-white"
+                  className="w-full rounded-3xl bg-[#1d5fd1] py-3 font-semibold text-white hover:bg-[#1552b4] disabled:cursor-not-allowed disabled:bg-slate-400 mt-2"
                 >
                   {isSubmitting ? 'Signing up...' : 'Sign Up'}
                 </button>
