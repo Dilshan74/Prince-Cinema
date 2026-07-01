@@ -1,25 +1,32 @@
 import React, { useEffect, useState } from 'react'
-import { getBookingsForUser, getUserBookingsAPI } from '../lib/adminData'
-import { getCurrentSession } from '../lib/auth'
+import { getBookingsForUser, getUserBookingsAPI, getGuestBookingsAPI } from '../lib/adminData'
+import { useAppContext } from '../context/AppContext'
 import Footer from '../components/Footer'
 
 const MyBookings = () => {
-  const [bookings, setBookings] = useState(() => getBookingsForUser(getCurrentSession()?.userId))
+  const { user } = useAppContext()
+  const [bookings, setBookings] = useState([])
 
   useEffect(() => {
     const fetchBookings = async () => {
-      const session = getCurrentSession()
       // Try to fetch from backend API first
-      const apiBookings = await getUserBookingsAPI(session?.userId)
-      if (apiBookings && apiBookings.length > 0) {
-        setBookings(apiBookings)
-      } else if (session?.userId) {
-        // Fall back to localStorage for logged-in users
-        setBookings(getBookingsForUser(session.userId))
+      if (user?._id) {
+        const apiBookings = await getUserBookingsAPI(user._id)
+        if (apiBookings && apiBookings.length > 0) {
+          setBookings(apiBookings)
+          return
+        }
       } else {
-        // For guests, show empty
-        setBookings([])
+        // For guests, try fetching guest bookings from API
+        const guestBookings = await getGuestBookingsAPI()
+        if (guestBookings && guestBookings.length > 0) {
+          setBookings(guestBookings)
+          return
+        }
       }
+
+      // Fallback to local storage if API is empty/fails
+      setBookings(getBookingsForUser(user?._id || null))
     }
 
     fetchBookings()
@@ -32,7 +39,7 @@ const MyBookings = () => {
       window.removeEventListener('bookings-updated', refreshBookings)
       window.removeEventListener('storage', refreshBookings)
     }
-  }, [])
+  }, [user])
 
   return (
     <main className="min-h-screen bg-[#05070d] pt-24 text-white">

@@ -3,7 +3,8 @@ import {
   getNowPlayingMovies,
   addShow,
   getAllShows,
-  getShow
+  getShow,
+  deleteShow
 } from '../controllers/showControllers.js';
 import { protectAdmin } from '../middleware/auth.js';
 
@@ -14,6 +15,9 @@ showRoutes.get('/now-playing', getNowPlayingMovies);
 
 // Add a show (Admin only)
 showRoutes.post('/add', protectAdmin, addShow);
+
+// Delete a show (Admin only)
+showRoutes.delete('/:showId', protectAdmin, deleteShow);
 
 // Get all shows
 showRoutes.get('/all', getAllShows);

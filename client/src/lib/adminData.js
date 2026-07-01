@@ -218,31 +218,10 @@ const formatShowTime = (timeStr) => {
 }
 
 export const getPublicMovies = () => {
-  const shows = getScheduledShows()
-  const existingTitles = new Set(publicMovieCatalog.map((movie) => normalizeMovieTitle(movie.title)))
-  const dynamicMovies = shows
-    .filter((show) => !existingTitles.has(normalizeMovieTitle(show.movie)))
-    .map((show) => buildDynamicMovie(show.movie))
-
-  return [...publicMovieCatalog, ...dynamicMovies].map((movie) => {
-    const movieShows = shows.filter((show) => normalizeMovieTitle(show.movie) === normalizeMovieTitle(movie.title))
-    const dateMap = new Map((movie.dateOptions || []).map((option) => [option.day, option]))
-    const displayTimeOptions = movieShows.map((show) => formatShowTime(show.showTime))
-
-    movieShows.forEach((show) => {
-      const option = parseShowDateOption(show.date)
-      if (option) {
-        dateMap.set(option.day, option)
-      }
-    })
-
-    return {
-      ...movie,
-      shows: Array.from(new Set([...(movie.shows || []), ...movieShows.map((show) => show.showTime)])),
-      dateOptions: Array.from(dateMap.values()),
-      timeOptions: Array.from(new Set([...(movie.timeOptions || []), ...displayTimeOptions])).sort(),
-    }
-  })
+  // Only return the base catalog — new shows from admin are handled
+  // by the backend API and merged in MoviePageLayout via mergeBackendShows.
+  // We no longer build dynamic movies from localStorage to avoid stale entries.
+  return publicMovieCatalog.map((movie) => ({ ...movie }))
 }
 
 const defaultShows = [

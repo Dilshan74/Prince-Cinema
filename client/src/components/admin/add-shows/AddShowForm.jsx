@@ -1,8 +1,9 @@
 import React, { useState } from 'react'
-import { CalendarDays, Clock3, Film, MapPin, Plus } from 'lucide-react'
-import { addScheduledShow } from '../../../lib/adminData'
+import { CalendarDays, Clock3, Film, MapPin, Plus, Trash2 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import AddShowField from './AddShowField'
+import { useAppContext } from '../../../context/AppContext'
+import axios from 'axios'
 
 const inputShellClassName =
   'flex items-center gap-3 rounded-lg border border-white/10 bg-black/25 px-4 py-3'
@@ -16,18 +17,20 @@ const movieOptions = [
   'Ballerina',
   'How to Train Your Dragon',
   'Karate Kid: Legends',
-  'Guardians of the Galaxy'
+  'Guardians of the Galaxy',
 ]
 
 const AddShowForm = ({ onShowAdded }) => {
+  const { adminToken, fetchshows } = useAppContext()
   const [formData, setFormData] = useState({
     movie: '',
-    date: '',
-    showTime: '',
     hall: 'Hall 01',
     price: '1200',
     notes: ''
   })
+  
+  const [showSlots, setShowSlots] = useState([{ date: '', showTime: '' }])
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   const handleChange = (e) => {
     const { name, value } = e.target
@@ -37,37 +40,76 @@ const AddShowForm = ({ onShowAdded }) => {
     }))
   }
 
-  const handleSubmit = (e) => {
+  const handleSlotChange = (index, field, value) => {
+    const newSlots = [...showSlots]
+    newSlots[index][field] = value
+    setShowSlots(newSlots)
+  }
+
+  const addSlot = () => {
+    setShowSlots([...showSlots, { date: '', showTime: '' }])
+  }
+
+  const removeSlot = (index) => {
+    if (showSlots.length > 1) {
+      setShowSlots(showSlots.filter((_, i) => i !== index))
+    }
+  }
+
+  const handleSubmit = async (e) => {
     e.preventDefault()
     if (!formData.movie?.trim()) {
       toast.error('Please enter a movie title.')
       return
     }
-
-    if (!formData.date || !formData.showTime) {
-      toast.error('Please fill in both show date and time.')
+    
+    // Validate slots
+    const validSlots = showSlots.filter(s => s.date && s.showTime)
+    if (validSlots.length === 0) {
+      toast.error('Please fill in at least one complete show date and time.')
       return
     }
 
+    setIsSubmitting(true)
     try {
-      addScheduledShow(formData)
-      toast.success(`Show scheduled successfully for ${formData.movie}!`)
-      
-      // Reset form
-      setFormData({
-        movie: '',
-        date: '',
-        showTime: '',
-        hall: 'Hall 01',
-        price: '1200',
-        notes: ''
-      })
+      const showInput = validSlots.map(slot => ({
+        date: slot.date,
+        time: slot.showTime
+      }))
 
-      if (onShowAdded) {
-        onShowAdded()
+      // Call the backend API
+      const response = await axios.post(
+        '/api/show/add',
+        {
+          movieTitle: formData.movie.trim(),
+          showInput,
+          showPrice: Number(formData.price) || 1200,
+        },
+        {
+          headers: { Authorization: `Bearer ${adminToken}` }
+        }
+      )
+
+      if (response.data.success) {
+        toast.success(`"${formData.movie}" shows added successfully!`)
+        setFormData({
+          movie: '',
+          hall: 'Hall 01',
+          price: '1200',
+          notes: ''
+        })
+        setShowSlots([{ date: '', showTime: '' }])
+        // Refresh shows in AppContext so Movies page updates immediately
+        if (typeof fetchshows === 'function') fetchshows()
+        if (onShowAdded) onShowAdded()
+      } else {
+        toast.error(response.data.message || 'Failed to add shows.')
       }
     } catch (error) {
-      toast.error('Failed to schedule the show.')
+      console.error('Add show error:', error)
+      toast.error(error.response?.data?.message || 'Failed to add shows. Please try again.')
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
@@ -105,33 +147,57 @@ const AddShowForm = ({ onShowAdded }) => {
           </div>
         </AddShowField>
 
-        <AddShowField label="Show date">
-          <div className={inputShellClassName}>
-            <CalendarDays className="h-4 w-4 text-[#ff8098]" />
-            <input
-              type="date"
-              name="date"
-              value={formData.date}
-              onChange={handleChange}
-              className="w-full bg-transparent text-sm text-white outline-none [color-scheme:dark]"
-              required
-            />
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <label className="text-sm font-medium text-slate-300">Show Date & Time Slots</label>
+            <button
+              type="button"
+              onClick={addSlot}
+              className="inline-flex items-center gap-1.5 rounded-lg bg-white/[0.05] px-3 py-1.5 text-xs font-medium text-white hover:bg-white/[0.1] transition"
+            >
+              <Plus className="h-3.5 w-3.5" />
+              Add another slot
+            </button>
           </div>
-        </AddShowField>
-
-        <AddShowField label="Show time">
-          <div className={inputShellClassName}>
-            <Clock3 className="h-4 w-4 text-[#ff8098]" />
-            <input
-              type="time"
-              name="showTime"
-              value={formData.showTime}
-              onChange={handleChange}
-              className="w-full bg-transparent text-sm text-white outline-none [color-scheme:dark]"
-              required
-            />
-          </div>
-        </AddShowField>
+          
+          {showSlots.map((slot, index) => (
+            <div key={index} className="flex flex-col sm:flex-row gap-3 items-start sm:items-center bg-white/[0.02] p-3 rounded-lg border border-white/5">
+              <div className="flex-1 w-full">
+                <div className={inputShellClassName}>
+                  <CalendarDays className="h-4 w-4 text-[#ff8098]" />
+                  <input
+                    type="date"
+                    value={slot.date}
+                    onChange={(e) => handleSlotChange(index, 'date', e.target.value)}
+                    className="w-full bg-transparent text-sm text-white outline-none [color-scheme:dark]"
+                    required
+                  />
+                </div>
+              </div>
+              <div className="flex-1 w-full">
+                <div className={inputShellClassName}>
+                  <Clock3 className="h-4 w-4 text-[#ff8098]" />
+                  <input
+                    type="time"
+                    value={slot.showTime}
+                    onChange={(e) => handleSlotChange(index, 'showTime', e.target.value)}
+                    className="w-full bg-transparent text-sm text-white outline-none [color-scheme:dark]"
+                    required
+                  />
+                </div>
+              </div>
+              {showSlots.length > 1 && (
+                <button
+                  type="button"
+                  onClick={() => removeSlot(index)}
+                  className="flex-shrink-0 flex h-11 w-11 items-center justify-center rounded-lg border border-red-500/20 bg-red-500/5 text-red-400 hover:bg-red-500/15 transition"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
+              )}
+            </div>
+          ))}
+        </div>
 
         <AddShowField label="Screen / hall">
           <div className={inputShellClassName}>
@@ -149,13 +215,14 @@ const AddShowForm = ({ onShowAdded }) => {
           </div>
         </AddShowField>
 
-        <AddShowField label="Ticket price">
+        <AddShowField label="Ticket price (LKR)">
           <input
-            type="text"
+            type="number"
             name="price"
             placeholder="1200"
             value={formData.price}
             onChange={handleChange}
+            min="0"
             className="w-full rounded-lg border border-white/10 bg-black/25 px-4 py-3 text-sm text-white outline-none placeholder:text-slate-500"
           />
         </AddShowField>
@@ -163,7 +230,7 @@ const AddShowForm = ({ onShowAdded }) => {
         <AddShowField label="Notes">
           <textarea
             name="notes"
-            rows="4"
+            rows="3"
             placeholder="Special instructions for this screening..."
             value={formData.notes}
             onChange={handleChange}
@@ -173,9 +240,10 @@ const AddShowForm = ({ onShowAdded }) => {
 
         <button
           type="submit"
-          className="inline-flex w-full items-center justify-center rounded-lg bg-[#ff4b6a] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#ff5d79] cursor-pointer"
+          disabled={isSubmitting}
+          className="inline-flex w-full items-center justify-center rounded-lg bg-[#ff4b6a] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#ff5d79] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
         >
-          Publish show
+          {isSubmitting ? 'Publishing...' : 'Publish shows'}
         </button>
       </form>
     </div>

@@ -55,7 +55,8 @@ export const AppProvider = ({ children }) => {
     // Set up interceptor to include token in all requests
     useEffect(() => {
         const interceptor = axios.interceptors.request.use((config) => {
-            if (token) {
+            // Only inject user token if the caller hasn't set their own Authorization header
+            if (token && !config.headers.Authorization) {
                 config.headers.Authorization = `Bearer ${token}`;
             }
             return config;
@@ -176,6 +177,7 @@ export const AppProvider = ({ children }) => {
         navigate, 
         isAdmin, 
         shows,
+        fetchshows,
         favourites, 
         fetchFavourites,
         token,

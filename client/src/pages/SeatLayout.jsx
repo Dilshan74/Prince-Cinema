@@ -5,6 +5,7 @@ import toast from 'react-hot-toast'
 import Footer from '../components/Footer'
 import { addBooking, createBookingAPI } from '../lib/adminData'
 import { getCurrentSession } from '../lib/auth'
+import { useAppContext } from '../context/AppContext'
 
 const leftBlock = [
   ['A1', 'A2', 'A3', 'A4'],
@@ -95,11 +96,13 @@ const SeatBlock = ({ rows, reservedSeats, selectedSeats, onSeatClick }) => {
 }
 
 const SeatLayout = () => {
+  const { user } = useAppContext()
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
   const selectedMovieTitle = searchParams.get('movie') || 'Selected Movie'
   const selectedDate = searchParams.get('date') || 'Today'
   const selectedTime = searchParams.get('time') || '7:30 PM'
+  const showId = searchParams.get('showId') || null
   const [selectedHallId, setSelectedHallId] = React.useState('hall1')
   const [selectedSeatsByHall, setSelectedSeatsByHall] = React.useState(() => ({
     hall1: halls.hall1.defaultSelectedSeats,
@@ -134,12 +137,15 @@ const SeatLayout = () => {
     }
 
     const total = `LKR ${selectedSeats.length * 1200}`
-    const session = getCurrentSession()
+    
+    // Create the booking data matching backend schema
     const bookingData = {
-      userId: session?.userId || null,
-      customer: session?.username || 'Guest User',
+      userId: user?._id || null,
+      customer: user?.name || user?.username || 'Guest User',
       movie: selectedMovieTitle,
-      seats: selectedSeats.join(', '),
+      showId: showId,
+      selectedSeats: selectedSeats, // Backend expects an array
+      seats: selectedSeats.join(', '), // Frontend fallback/list expects a string
       total,
       bookedAt: new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }),
       status: 'Confirmed',

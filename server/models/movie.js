@@ -38,8 +38,8 @@ const movieSchema = new mongoose.Schema(
         required: true
     },
     casts: {
-        type: [String],
-        required: true
+        type: [mongoose.Schema.Types.Mixed],
+        default: []
     },
     vote_average: {
         type: Number,

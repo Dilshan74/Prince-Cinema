@@ -185,13 +185,18 @@ export const addShow = async (req, res) => {
         const localMovie = resolvedMovieID ? findLocalMovie(resolvedMovieID) : findLocalMovieByTitle(resolvedMovieTitle);
         const effectiveMovieID = resolvedMovieID || localMovie?._id;
 
-        if (!effectiveMovieID) {
+        // Require at least a title or an ID
+        if (!effectiveMovieID && !resolvedMovieTitle) {
             return res.status(400).json({ success: false, message: 'movieID or movieTitle is required' });
         }
 
-        movie = await Movie.findById(String(effectiveMovieID));
+        // Only look up by ID if we have one
+        if (effectiveMovieID) {
+            movie = await Movie.findById(String(effectiveMovieID));
+        }
 
         if (!movie && localMovie) {
+            // Movie is in our local list but not yet in DB — create it with local data
             movieData = {
                 ...localMovie,
                 poster_path: localMovie.poster_path || '/images/placeholder.png',
@@ -207,8 +212,9 @@ export const addShow = async (req, res) => {
             if (movieData) {
                 movie = await Movie.create(movieData);
             } else {
+                // Movie not found locally — search TMDB by title
                 let tmdbMovieId = effectiveMovieID;
-                if (!resolvedMovieID && resolvedMovieTitle) {
+                if (resolvedMovieTitle) {
                     const searchResponse = await axios.get('https://api.themoviedb.org/3/search/movie', {
                         params: {
                             api_key: process.env.TMDB_API_KEY,
@@ -218,41 +224,83 @@ export const addShow = async (req, res) => {
                     });
                     const firstResult = Array.isArray(searchResponse.data.results) ? searchResponse.data.results[0] : null;
                     if (!firstResult) {
-                        return res.status(404).json({ success: false, message: `Movie not found for title '${resolvedMovieTitle}'` });
+                        return res.status(404).json({ success: false, message: `Movie not found on TMDB for title '${resolvedMovieTitle}'` });
                     }
                     tmdbMovieId = firstResult.id;
+                    // Check if this TMDB movie already exists in DB
+                    movie = await Movie.findById(String(tmdbMovieId));
                 }
 
-                const [movieDetailsResponse, movieCreditsResponse] = await Promise.all([
-                    axios.get(`https://api.themoviedb.org/3/movie/${tmdbMovieId}`, {
-                        params: {
-                            api_key: process.env.TMDB_API_KEY
-                        }
-                    }),
-                    axios.get(`https://api.themoviedb.org/3/movie/${tmdbMovieId}/credits`, {
-                        params: {
-                            api_key: process.env.TMDB_API_KEY
-                        }
-                    })
-                ]);
+                if (!movie) {
+                    const [movieDetailsResponse, movieCreditsResponse] = await Promise.all([
+                        axios.get(`https://api.themoviedb.org/3/movie/${tmdbMovieId}`, {
+                            params: { api_key: process.env.TMDB_API_KEY }
+                        }),
+                        axios.get(`https://api.themoviedb.org/3/movie/${tmdbMovieId}/credits`, {
+                            params: { api_key: process.env.TMDB_API_KEY }
+                        })
+                    ]);
 
-                const movieData = movieDetailsResponse.data;
-                const movieCreditsData = movieCreditsResponse.data;
+                    const tmdbData = movieDetailsResponse.data;
+                    const tmdbCredits = movieCreditsResponse.data;
 
-                movie = await Movie.create({
-                    _id: String(tmdbMovieId),
-                    title: movieData.title || 'Untitled',
-                    overview: movieData.overview || '',
-                    poster_path: movieData.poster_path || '/images/placeholder.png',
-                    backdrop_path: movieData.backdrop_path || '/images/placeholder.png',
-                    genres: Array.isArray(movieData.genres) ? movieData.genres.map((g) => (g.name ? g.name : g)) : [],
-                    casts: Array.isArray(movieCreditsData.cast) ? movieCreditsData.cast.map((cast) => cast.name) : [],
-                    release_date: movieData.release_date || '',
-                    original_language: movieData.original_language || 'en',
-                    tagline: movieData.tagline || '',
-                    vote_average: movieData.vote_average || 0,
-                    runtime: movieData.runtime || 0
+                    movie = await Movie.create({
+                        _id: String(tmdbMovieId),
+                        title: tmdbData.title || resolvedMovieTitle || 'Untitled',
+                        overview: tmdbData.overview || '',
+                        poster_path: tmdbData.poster_path || '',
+                        backdrop_path: tmdbData.backdrop_path || '',
+                        genres: Array.isArray(tmdbData.genres) ? tmdbData.genres.map((g) => (g.name ? g.name : g)) : [],
+                        casts: Array.isArray(tmdbCredits.cast) ? tmdbCredits.cast.slice(0, 5).map((c) => ({
+                            id: String(c.id),
+                            name: c.name,
+                            role: c.character || 'Role',
+                            image: c.profile_path ? `https://image.tmdb.org/t/p/w185${c.profile_path}` : 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=300&q=80'
+                        })) : [],
+                        release_date: tmdbData.release_date || '',
+                        original_language: tmdbData.original_language || 'en',
+                        tagline: tmdbData.tagline || '',
+                        vote_average: tmdbData.vote_average || 0,
+                        runtime: tmdbData.runtime || 0
+                    });
+                }
+            }
+        }
+
+        // If movie exists in DB but has no poster (from old broken saves), patch it from TMDB
+        if (movie && !movie.poster_path && resolvedMovieTitle) {
+            try {
+                const searchResponse = await axios.get('https://api.themoviedb.org/3/search/movie', {
+                    params: { api_key: process.env.TMDB_API_KEY, query: resolvedMovieTitle, page: 1 },
                 });
+                const firstResult = searchResponse.data.results?.[0];
+                if (firstResult) {
+                    const tmdbId = firstResult.id;
+                    const [detailsRes, creditsRes] = await Promise.all([
+                        axios.get(`https://api.themoviedb.org/3/movie/${tmdbId}`, { params: { api_key: process.env.TMDB_API_KEY } }),
+                        axios.get(`https://api.themoviedb.org/3/movie/${tmdbId}/credits`, { params: { api_key: process.env.TMDB_API_KEY } }),
+                    ]);
+                    const d = detailsRes.data;
+                    await Movie.findByIdAndUpdate(movie._id, {
+                        poster_path: d.poster_path || movie.poster_path,
+                        backdrop_path: d.backdrop_path || movie.backdrop_path,
+                        genres: d.genres?.map(g => g.name) || movie.genres,
+                        casts: Array.isArray(creditsRes.data.cast) ? creditsRes.data.cast.slice(0, 5).map(c => ({
+                            id: String(c.id),
+                            name: c.name,
+                            role: c.character || 'Role',
+                            image: c.profile_path ? `https://image.tmdb.org/t/p/w185${c.profile_path}` : 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=300&q=80'
+                        })) : movie.casts,
+                        runtime: d.runtime || movie.runtime,
+                        vote_average: d.vote_average || movie.vote_average,
+                        overview: d.overview || movie.overview,
+                        release_date: d.release_date || movie.release_date,
+                    });
+                    // Reload updated movie
+                    movie = await Movie.findById(movie._id);
+                }
+            } catch (patchErr) {
+                console.warn('Could not patch movie poster from TMDB:', patchErr.message);
             }
         }
 
@@ -317,3 +365,17 @@ export const getShow = async (req, res) => {
     }
 }
 
+// API to delete a show by ID (Admin only)
+export const deleteShow = async (req, res) => {
+    try {
+        const { showId } = req.params;
+        const deleted = await Show.findByIdAndDelete(showId);
+        if (!deleted) {
+            return res.status(404).json({ success: false, message: 'Show not found' });
+        }
+        res.json({ success: true, message: 'Show deleted successfully' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+}

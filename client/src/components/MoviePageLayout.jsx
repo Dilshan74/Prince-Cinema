@@ -6,6 +6,93 @@ import MovieCard from './MovieCard'
 import { assets } from '../assets/assets'
 import { getFavoriteMovies, toggleFavoriteMovie } from '../lib/favorites'
 import { getPublicMovies, getScheduledShows } from '../lib/adminData'
+import { useAppContext } from '../context/AppContext'
+
+const TMDB_IMAGE_BASE = 'https://image.tmdb.org/t/p/original'
+
+// Build a movie card object from a backend show's populated movie data
+const buildMovieFromBackendShow = (show) => {
+  const m = show.movie
+  if (!m || typeof m !== 'object') return null
+  const posterPath = m.poster_path
+  const image = posterPath
+    ? (posterPath.startsWith('http') ? posterPath : `${TMDB_IMAGE_BASE}${posterPath}`)
+    : 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=800&q=80'
+  const releaseYear = m.release_date ? new Date(m.release_date).getFullYear() : new Date().getFullYear()
+  return {
+    _id: String(m._id),
+    title: m.title,
+    year: releaseYear,
+    genres: Array.isArray(m.genres) ? m.genres : ['Drama'],
+    duration: m.runtime || 0,
+    rating: m.vote_average ? String(m.vote_average) : 'TBA',
+    image,
+    language: m.original_language?.toUpperCase() || 'ENGLISH',
+    overview: m.overview || '',
+    casts: m.casts || [],
+    dateOptions: [],
+    timeOptions: [],
+    shows: [],
+  }
+}
+
+// Merge backend shows into a deduplicated movie list
+const mergeBackendShows = (localMovies, backendShows) => {
+  if (!Array.isArray(backendShows) || backendShows.length === 0) return localMovies
+
+  const movieMap = new Map()
+
+  // Start with local movies
+  localMovies.forEach(m => movieMap.set(m._id, { ...m }))
+
+  backendShows.forEach(show => {
+    const m = show.movie
+    if (!m || typeof m !== 'object') return
+    const id = String(m._id)
+    const dt = new Date(show.showDateTime)
+    
+    const day = dt.getDate().toString()
+    const month = dt.toLocaleString('en-US', { month: 'short' })
+    const timeStr = dt.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })
+
+    let existing = movieMap.get(id)
+    if (!existing) {
+      existing = buildMovieFromBackendShow(show)
+      if (!existing) return
+      movieMap.set(id, existing)
+    } else {
+      // Update existing movie — patch image from TMDB if it's the generic fallback
+      const posterPath = m.poster_path
+      if (posterPath && (!existing.image || existing.image.includes('unsplash'))) {
+        existing.image = posterPath.startsWith('http') ? posterPath : `${TMDB_IMAGE_BASE}${posterPath}`
+      }
+      // Update casts if not present
+      if ((!existing.casts || existing.casts.length === 0) && m.casts && m.casts.length > 0) {
+        existing.casts = m.casts
+      }
+    }
+
+    // Add to dateOptions
+    if (!existing.dateOptions) existing.dateOptions = []
+    const hasDate = existing.dateOptions.some(d => d.day === day && d.month === month)
+    if (!hasDate) {
+      existing.dateOptions.push({ day, month })
+    }
+
+    // Add to timeOptions
+    if (!existing.timeOptions) existing.timeOptions = []
+    if (!existing.timeOptions.includes(timeStr)) {
+      existing.timeOptions.push(timeStr)
+      // Sort time options
+      existing.timeOptions.sort()
+    }
+
+    // Add to shows (if needed by other logic)
+    if (!existing.shows.includes(timeStr)) existing.shows.push(timeStr)
+  })
+
+  return Array.from(movieMap.values())
+}
 
 const defaultCastMembers = [
   { id: 'chris-pratt', name: 'Chris Pratt', role: 'Star-Lord', image: 'https://people.com/thmb/7gM4cQZ8gRxJ_u75YJioGjo0zRo=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc():focal(734x399:736x401)/Chris-Pratt-Guardians-01-050323-0a32195605b14891b0bf937cdaf5bf96.jpg' },
@@ -65,6 +152,29 @@ const movieCastMap = {
 }
 
 const getCastMembers = (movie) => {
+  // If backend provided real casts objects (or strings), use them
+  if (movie?.casts && Array.isArray(movie.casts) && movie.casts.length > 0) {
+    return movie.casts.slice(0, 5).map((cast, index) => {
+      // Handle the new object format
+      if (typeof cast === 'object' && cast !== null) {
+        return {
+          id: cast.id || `cast-${index}`,
+          name: cast.name || 'Unknown Actor',
+          role: cast.role || 'Actor',
+          image: cast.image || 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=300&q=80'
+        }
+      }
+      // Handle older movies where cast might just be an array of name strings
+      return {
+        id: `cast-${index}`,
+        name: typeof cast === 'string' ? cast : 'Unknown Actor',
+        role: 'Actor',
+        image: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=300&q=80'
+      }
+    })
+  }
+
+  // Fallback to hardcoded map
   const title = (movie?.title || '').trim().toLowerCase()
   return movieCastMap[title] || defaultCastMembers
 }
@@ -240,6 +350,7 @@ const MoviePageLayout = () => {
   const [showAllMovies, setShowAllMovies] = React.useState(false)
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
+  const { shows: backendShows } = useAppContext()
   const initialPublicMovies = React.useMemo(() => getPublicMovies(), [])
   const fallbackFeaturedMovie = initialPublicMovies[0] || featuredMovie
   const fallbackRecommendedMovies = initialPublicMovies.slice(1).length > 0 ? initialPublicMovies.slice(1) : recommendedMovies
@@ -248,8 +359,8 @@ const MoviePageLayout = () => {
   const [selectedMovie, setSelectedMovie] = React.useState(fallbackFeaturedMovie)
   const [favoriteIds, setFavoriteIds] = React.useState([])
   const activeCastMembers = React.useMemo(() => getCastMembers(selectedMovie), [selectedMovie])
-  const [selectedDate, setSelectedDate] = React.useState(fallbackFeaturedMovie.dateOptions[0].day)
-  const [selectedTime, setSelectedTime] = React.useState(fallbackFeaturedMovie.timeOptions[0])
+  const [selectedDate, setSelectedDate] = React.useState(fallbackFeaturedMovie.dateOptions[0]?.day || '')
+  const [selectedTime, setSelectedTime] = React.useState(fallbackFeaturedMovie.timeOptions[0] || '')
   const [isTransitioning, setIsTransitioning] = React.useState(false)
   const detailsRef = React.useRef(null)
 
@@ -284,56 +395,48 @@ const MoviePageLayout = () => {
   React.useEffect(() => {
     if (!selectedMovie) return
 
-    let shows = []
-    try {
-      shows = getScheduledShows()
-    } catch (e) {
-      console.error(e)
-    }
-
-    const matchingShows = shows.filter(show => {
-      if (show.movie !== selectedMovie.title) return false
-      const parts = show.date.split(' ')
-      if (parts.length >= 2) {
-        const day = parts[1].replace(',', '')
+    // 1. Find dynamic times from backendShows for the selected date
+    const backendTimes = backendShows
+      .filter(show => {
+        if (String(show.movie?._id) !== String(selectedMovie._id)) return false
+        const dt = new Date(show.showDateTime)
+        const day = dt.getDate().toString()
         return day === selectedDate
-      }
-      return false
-    })
+      })
+      .map(show => {
+        const dt = new Date(show.showDateTime)
+        return dt.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })
+      })
 
-    const dynamicTimes = matchingShows.map(show => {
-      const timeStr = show.showTime
-      const [timePart, ampm] = timeStr.split(' ')
-      const [hourStr, minStr] = timePart.split(':')
-      let hour = parseInt(hourStr, 10)
-      if (ampm === 'PM' && hour < 12) hour += 12
-      if (ampm === 'AM' && hour === 12) hour = 0
-      const formattedHour = String(hour).padStart(2, '0')
-      return `${formattedHour}:${minStr}`
-    })
-
+    // 2. Check if the selected date is one of the hardcoded "base" dates for this movie
     const isActuallyBaseDate = selectedMovie._id === dynamicFeaturedMovie._id
-      ? featuredMovie.dateOptions.some(d => d.day === selectedDate)
-      : recommendedMovies.find(m => m._id === selectedMovie._id)?.dateOptions.some(d => d.day === selectedDate)
+      ? featuredMovie.dateOptions?.some(d => d.day === selectedDate)
+      : recommendedMovies.find(m => m._id === selectedMovie._id)?.dateOptions?.some(d => d.day === selectedDate)
 
     const baseTimes = selectedMovie.timeOptions || []
-    const timesToShow = isActuallyBaseDate ? [...baseTimes, ...dynamicTimes] : dynamicTimes
+    
+    // 3. Combine base times (if it's a base date) with backend times
+    const timesToShow = isActuallyBaseDate ? [...baseTimes, ...backendTimes] : backendTimes
     const finalTimes = Array.from(new Set(timesToShow)).sort()
 
     setActiveTimeOptions(finalTimes)
     if (finalTimes.length > 0) {
-      setSelectedTime(finalTimes[0])
+      if (!finalTimes.includes(selectedTime)) {
+        setSelectedTime(finalTimes[0])
+      }
     } else {
       setSelectedTime('')
     }
-  }, [selectedMovie, selectedDate, dynamicFeaturedMovie, dynamicRecommendedMovies])
+  }, [selectedMovie, selectedDate, backendShows, dynamicFeaturedMovie, dynamicRecommendedMovies])
 
   React.useEffect(() => {
     const refreshMovies = () => {
       try {
         const publicMovies = getPublicMovies()
-        const updatedFeatured = publicMovies[0] || featuredMovie
-        const updatedRecommended = publicMovies.slice(1).length > 0 ? publicMovies.slice(1) : recommendedMovies
+        // Merge backend shows (with real TMDB posters) into the local movie list
+        const merged = mergeBackendShows(publicMovies, backendShows)
+        const updatedFeatured = merged[0] || featuredMovie
+        const updatedRecommended = merged.slice(1).length > 0 ? merged.slice(1) : recommendedMovies
 
         setDynamicFeaturedMovie(updatedFeatured)
         setDynamicRecommendedMovies(updatedRecommended)
@@ -367,7 +470,7 @@ const MoviePageLayout = () => {
       window.removeEventListener('storage', refreshMovies)
       window.removeEventListener('shows-updated', refreshMovies)
     }
-  }, [searchParams])
+  }, [searchParams, backendShows])
 
   const handleToggleFavorite = (movie) => {
     const result = toggleFavoriteMovie(movie)
@@ -380,6 +483,19 @@ const MoviePageLayout = () => {
       date: selectedDate,
       time: selectedTime,
     })
+
+    // Find the specific backend show ID for this booking
+    const matchingShow = backendShows.find(show => {
+      if (String(show.movie?._id) !== String(selectedMovie._id)) return false
+      const dt = new Date(show.showDateTime)
+      const day = dt.getDate().toString()
+      const timeStr = dt.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })
+      return day === selectedDate && timeStr === selectedTime
+    })
+
+    if (matchingShow) {
+      params.append('showId', matchingShow._id)
+    }
 
     navigate(`/seat-layout?${params.toString()}`)
   }
