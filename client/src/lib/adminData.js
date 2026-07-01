@@ -522,7 +522,9 @@ export const addBooking = (booking) => {
 export const bookingRows = getBookingRows();
 
 // API functions for cross-device booking sync
-export const createBookingAPI = async (booking, baseUrl = '') => {
+const API_BASE_URL = import.meta.env.VITE_API_URL || '';
+
+export const createBookingAPI = async (booking, baseUrl = API_BASE_URL) => {
   try {
     const res = await fetch(`${baseUrl}/api/booking/create`, {
       method: 'POST',
@@ -538,7 +540,7 @@ export const createBookingAPI = async (booking, baseUrl = '') => {
   }
 };
 
-export const getAllBookingsAPI = async (baseUrl = '') => {
+export const getAllBookingsAPI = async (baseUrl = API_BASE_URL) => {
   try {
     const res = await fetch(`${baseUrl}/api/booking/all`);
     if (!res.ok) throw new Error('Failed to fetch bookings');
@@ -550,7 +552,7 @@ export const getAllBookingsAPI = async (baseUrl = '') => {
   }
 };
 
-export const getUserBookingsAPI = async (userId, baseUrl = '') => {
+export const getUserBookingsAPI = async (userId, baseUrl = API_BASE_URL) => {
   try {
     if (!userId) return [];
     const res = await fetch(`${baseUrl}/api/booking/user/${userId}`);
@@ -563,7 +565,7 @@ export const getUserBookingsAPI = async (userId, baseUrl = '') => {
   }
 };
 
-export const getGuestBookingsAPI = async (baseUrl = '') => {
+export const getGuestBookingsAPI = async (baseUrl = API_BASE_URL) => {
   try {
     const res = await fetch(`${baseUrl}/api/booking/guest`);
     if (!res.ok) throw new Error('Failed to fetch guest bookings');
@@ -578,7 +580,7 @@ export const getGuestBookingsAPI = async (baseUrl = '') => {
 // Fetch now-playing movies from backend; fall back to local admin list on error
 export const fetchNowPlayingMovies = async (opts = {}) => {
   try {
-    const base = typeof opts.baseUrl === 'string' ? opts.baseUrl : '';
+    const base = typeof opts.baseUrl === 'string' ? opts.baseUrl : API_BASE_URL;
     const res = await fetch(`${base}/api/show/now-playing`);
     if (!res.ok) throw new Error('Fetch failed');
     const body = await res.json();
