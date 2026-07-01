@@ -396,7 +396,7 @@ const MoviePageLayout = () => {
     if (!selectedMovie) return
 
     // 1. Find dynamic times from backendShows for the selected date
-    const backendTimes = backendShows
+    const backendTimeObjects = backendShows
       .filter(show => {
         if (String(show.movie?._id) !== String(selectedMovie._id)) return false
         const dt = new Date(show.showDateTime)
@@ -405,7 +405,8 @@ const MoviePageLayout = () => {
       })
       .map(show => {
         const dt = new Date(show.showDateTime)
-        return dt.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })
+        const timeStr = dt.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })
+        return { time: timeStr, price: show.showPrice }
       })
 
     // 2. Check if the selected date is one of the hardcoded "base" dates for this movie
@@ -414,15 +415,24 @@ const MoviePageLayout = () => {
       : recommendedMovies.find(m => m._id === selectedMovie._id)?.dateOptions?.some(d => d.day === selectedDate)
 
     const baseTimes = selectedMovie.timeOptions || []
+    const baseTimeObjects = baseTimes.map(t => ({ time: t, price: 1200 }))
     
     // 3. Combine base times (if it's a base date) with backend times
-    const timesToShow = isActuallyBaseDate ? [...baseTimes, ...backendTimes] : backendTimes
-    const finalTimes = Array.from(new Set(timesToShow)).sort()
+    const timesToShow = isActuallyBaseDate ? [...baseTimeObjects, ...backendTimeObjects] : backendTimeObjects
+    
+    const uniqueTimesMap = new Map()
+    timesToShow.forEach(obj => {
+      if (!uniqueTimesMap.has(obj.time) || obj.price !== 1200) {
+        uniqueTimesMap.set(obj.time, obj)
+      }
+    })
+    
+    const finalTimes = Array.from(uniqueTimesMap.values()).sort((a, b) => a.time.localeCompare(b.time))
 
     setActiveTimeOptions(finalTimes)
     if (finalTimes.length > 0) {
-      if (!finalTimes.includes(selectedTime)) {
-        setSelectedTime(finalTimes[0])
+      if (!finalTimes.some(t => t.time === selectedTime)) {
+        setSelectedTime(finalTimes[0].time)
       }
     } else {
       setSelectedTime('')
@@ -497,6 +507,11 @@ const MoviePageLayout = () => {
       params.append('showId', matchingShow._id)
       if (matchingShow.showPrice) {
         params.append('price', matchingShow.showPrice)
+      }
+    } else {
+      const selectedTimeObj = activeTimeOptions.find(t => t.time === selectedTime)
+      if (selectedTimeObj && selectedTimeObj.price) {
+        params.append('price', selectedTimeObj.price)
       }
     }
 
@@ -574,6 +589,17 @@ const MoviePageLayout = () => {
                     className={`h-4 w-4 ${favoriteIds.includes(selectedMovie._id) ? 'fill-white' : ''}`}
                   />
                 </button>
+
+                {(() => {
+                  const selectedTimeObj = activeTimeOptions.find(t => t.time === selectedTime)
+                  const displayPrice = selectedTimeObj?.price ? `LKR ${selectedTimeObj.price.toLocaleString()}` : ''
+                  
+                  return displayPrice ? (
+                    <div className="ml-2 flex items-center rounded-full border border-[#ff5c73]/30 bg-[#ff5c73]/10 px-4 py-2.5 text-sm font-semibold text-[#ff5c73]">
+                      {displayPrice}
+                    </div>
+                  ) : null
+                })()}
               </div>
             </div>
           </div>
@@ -623,21 +649,21 @@ const MoviePageLayout = () => {
 
                 <p className="mb-3 mt-5 text-sm font-medium text-white">Choose Time</p>
                 <div className="flex flex-wrap gap-2">
-                  {activeTimeOptions.map((time) => {
-                    const isActive = selectedTime === time
+                  {activeTimeOptions.map((timeObj) => {
+                    const isActive = selectedTime === timeObj.time
 
                     return (
                       <button
-                        key={time}
+                        key={timeObj.time}
                         type="button"
-                        onClick={() => setSelectedTime(time)}
+                        onClick={() => setSelectedTime(timeObj.time)}
                         className={`rounded-lg border px-3 py-2 text-xs font-medium transition ${
                           isActive
                             ? 'border-[#ff5c73] bg-[#ff5c73] text-white'
                             : 'border-white/10 bg-white/[0.03] text-white/70 hover:border-white/20'
                         }`}
                       >
-                        {time}
+                        {timeObj.time}
                       </button>
                     )
                   })}
