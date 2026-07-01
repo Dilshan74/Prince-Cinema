@@ -33,24 +33,17 @@ export const createBooking = async (req, res) => {
       total,
     } = req.body;
 
-    const available = await checkSeatAvailability(
-      showId,
-      selectedSeats
-    );
+    let available = true;
+
+    // Only check seat availability if this booking is linked to a specific database Show
+    if (showId) {
+      available = await checkSeatAvailability(showId, selectedSeats);
+    }
 
     if (!available) {
       return res.json({
         success: false,
         message: "Some seats are already booked.",
-      });
-    }
-
-    const show = await Show.findById(showId);
-
-    if (!show) {
-      return res.json({
-        success: false,
-        message: "Show not found.",
       });
     }
 
@@ -64,10 +57,14 @@ export const createBooking = async (req, res) => {
       status: "Confirmed",
     });
 
-    // Add seats into occupiedSeats array
-    show.occupiedSeats.push(...selectedSeats);
-
-    await show.save();
+    // If it's a database show, update the occupied seats
+    if (showId) {
+      const show = await Show.findById(showId);
+      if (show) {
+        show.occupiedSeats.push(...selectedSeats);
+        await show.save();
+      }
+    }
 
     res.json({
       success: true,
