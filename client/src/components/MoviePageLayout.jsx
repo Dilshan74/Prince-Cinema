@@ -495,6 +495,9 @@ const MoviePageLayout = () => {
 
     if (matchingShow) {
       params.append('showId', matchingShow._id)
+      if (matchingShow.showPrice) {
+        params.append('price', matchingShow.showPrice)
+      }
     }
 
     navigate(`/seat-layout?${params.toString()}`)

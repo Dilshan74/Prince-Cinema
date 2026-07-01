@@ -136,7 +136,8 @@ const SeatLayout = () => {
       return
     }
 
-    const total = `LKR ${selectedSeats.length * 1200}`
+    const ticketPrice = Number(searchParams.get('price')) || 1200
+    const total = `LKR ${selectedSeats.length * ticketPrice}`
     
     // Create the booking data matching backend schema
     const bookingData = {

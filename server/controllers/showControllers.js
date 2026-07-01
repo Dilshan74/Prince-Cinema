@@ -101,6 +101,7 @@ const parseShowDateTime = (date, time) => {
     const rawDate = String(date).trim();
     const rawTime = String(time).trim().replace(/\./g, ':');
     const candidates = [
+        `${rawDate}T${rawTime}+05:30`,
         `${rawDate} ${rawTime}`,
         `${rawDate}T${rawTime}`,
         `${rawDate.replace(/\//g, '-')}T${rawTime}`,
@@ -116,7 +117,7 @@ const parseShowDateTime = (date, time) => {
         if (parts.length === 3) {
             const [first, second, third] = parts;
             const iso = `${third.length === 4 ? third : first}-${third.length === 4 ? first : third}-${second}`;
-            const parsed = new Date(`${iso}T${rawTime}`);
+            const parsed = new Date(`${iso}T${rawTime}+05:30`);
             if (!Number.isNaN(parsed.getTime())) return parsed;
         }
     }

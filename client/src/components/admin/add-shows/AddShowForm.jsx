@@ -222,6 +222,7 @@ const AddShowForm = ({ onShowAdded }) => {
             placeholder="1200"
             value={formData.price}
             onChange={handleChange}
+            onWheel={(e) => e.target.blur()}
             min="0"
             className="w-full rounded-lg border border-white/10 bg-black/25 px-4 py-3 text-sm text-white outline-none placeholder:text-slate-500"
           />
