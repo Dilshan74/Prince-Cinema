@@ -175,7 +175,7 @@ const SeatLayout = () => {
       selectedSeats: selectedSeats, // Backend expects an array
       seats: selectedSeats.join(', '), // Frontend fallback/list expects a string
       total,
-      bookedAt: new Date().toLocaleString('en-US'),
+      bookedAt: new Date().toLocaleString('en-US', { timeZone: 'Asia/Colombo' }),
       status: 'Confirmed',
     }
 

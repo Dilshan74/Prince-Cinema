@@ -57,7 +57,7 @@ export const createBooking = async (req, res) => {
       showTime: showTime || '',
       seats: selectedSeats.join(", "),
       total,
-      bookedAt: new Date().toLocaleString(),
+      bookedAt: new Date().toLocaleString("en-US", { timeZone: "Asia/Colombo" }),
       status: "Confirmed",
     });
 
