@@ -108,10 +108,29 @@ const SeatLayout = () => {
     hall1: halls.hall1.defaultSelectedSeats,
     hall2: halls.hall2.defaultSelectedSeats,
   }))
+  const [fetchedReservedSeats, setFetchedReservedSeats] = React.useState(new Set())
+
+  React.useEffect(() => {
+    if (showId) {
+      const fetchOccupied = async () => {
+        try {
+          const API_URL = import.meta.env.VITE_API_URL || '';
+          const res = await fetch(`${API_URL}/api/booking/occupied-seats/${showId}`);
+          const data = await res.json();
+          if (data.success && data.occupiedSeats) {
+            setFetchedReservedSeats(new Set(data.occupiedSeats));
+          }
+        } catch (err) {
+          console.error(err);
+        }
+      }
+      fetchOccupied();
+    }
+  }, [showId])
 
   const activeHall = halls[selectedHallId]
   const selectedSeats = selectedSeatsByHall[selectedHallId]
-  const reservedSeats = activeHall.reservedSeats
+  const reservedSeats = showId ? fetchedReservedSeats : activeHall.reservedSeats
 
   const handleSeatClick = (seatId) => {
     if (reservedSeats.has(seatId)) {
@@ -120,6 +139,13 @@ const SeatLayout = () => {
 
     setSelectedSeatsByHall((currentState) => {
       const currentSeats = currentState[selectedHallId]
+      const maxTickets = parseInt(activeHall.availableTickets, 10)
+      const isSelecting = !currentSeats.includes(seatId)
+
+      if (isSelecting && currentSeats.length >= maxTickets) {
+        toast.error(`You can only select up to ${maxTickets} seats`)
+        return currentState
+      }
 
       return {
         ...currentState,
@@ -207,7 +233,7 @@ const SeatLayout = () => {
                     <Ticket className="h-4 w-4" />
                   </div>
                   <div>
-                    <p className="text-xs text-white/55">Available Tickets</p>
+                    <p className="text-xs text-white/55">Available Tickets (Max per booking)</p>
                     <p className="text-xl font-semibold">{activeHall.availableTickets}</p>
                   </div>
                 </div>

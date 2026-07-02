@@ -131,7 +131,7 @@ export const AppProvider = ({ children }) => {
 
     const fetchshows = async () => {
         try {
-            const {data} = await axios.get("/api/show/all");
+            const {data} = await axios.get("/api/show/all?upcoming=true");
             if(data.success) {
                 setShows(data.shows);
             } else {
