@@ -167,7 +167,7 @@ const SeatLayout = () => {
     
     const bookingData = {
       userId: user?._id || null,
-      customer: user?.name || user?.username || 'Guest User',
+      customer: user ? `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'Guest User' : 'Guest User',
       movie: selectedMovieTitle,
       showId: showId,
       showDate: selectedDate,

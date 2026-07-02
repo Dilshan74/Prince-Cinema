@@ -29,7 +29,7 @@ const App = () => {
       <ScrollToTop />
       <Toaster position="top-right" />
       {!isAdminRoute && <Navbar />}
-      <div key={location.pathname} className="page-transition min-h-screen">
+      <div key={location.pathname} className="page-transition min-h-[100dvh] overflow-x-hidden">
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/movies" element={<Movies />} />

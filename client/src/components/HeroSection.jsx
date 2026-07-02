@@ -17,7 +17,7 @@ const HeroSection = () => {
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(59,130,246,0.18),transparent_28%),radial-gradient(circle_at_bottom_left,rgba(239,68,68,0.14),transparent_30%)]" />
       <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-black to-transparent" />
 
-      <div className="relative mx-auto flex min-h-[calc(100vh-80px)] max-w-7xl items-center px-4 md:px-6 lg:px-10">
+      <div className="relative mx-auto flex min-h-[calc(100dvh-80px)] max-w-7xl items-center px-4 md:px-6 lg:px-10">
         <div className="max-w-2xl py-16 md:py-20">
           <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/8 px-4 py-2 text-xs font-medium tracking-[0.22em] text-white/80 uppercase backdrop-blur-sm md:text-sm">
             <Star className="h-4 w-4 fill-red-500 text-red-500" />

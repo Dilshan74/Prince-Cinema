@@ -192,7 +192,7 @@ const Navbar = () => {
       </div>
 
       {isMenuOpen && (
-        <div className="mx-6 rounded-3xl border border-white/10 bg-black/50 px-6 py-4 backdrop-blur-xl supports-[backdrop-filter]:bg-black/35 md:hidden">
+        <div className="mx-6 max-h-[85vh] overflow-y-auto rounded-3xl border border-white/10 bg-black/50 px-6 py-4 backdrop-blur-xl supports-[backdrop-filter]:bg-black/35 md:hidden">
           <div className="flex flex-col gap-4">
             <div className="relative md:hidden">
               <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/45" />

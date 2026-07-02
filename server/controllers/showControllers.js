@@ -322,6 +322,49 @@ export const addShow = async (req, res) => {
             return res.status(400).json({ success: false, message: 'No valid show times found in showInput' });
         }
 
+        const runtimeMinutes = movie.runtime || 120;
+        
+        // 1. Check for self-overlaps within the request
+        for (let i = 0; i < showToCreate.length; i++) {
+            const start1 = new Date(showToCreate[i].showDateTime);
+            const end1 = new Date(start1.getTime() + runtimeMinutes * 60000);
+            for (let j = i + 1; j < showToCreate.length; j++) {
+                const start2 = new Date(showToCreate[j].showDateTime);
+                const end2 = new Date(start2.getTime() + runtimeMinutes * 60000);
+                if (showToCreate[i].hall === showToCreate[j].hall && start1 < end2 && end1 > start2) {
+                    return res.status(400).json({ success: false, message: 'The provided show times overlap with each other.' });
+                }
+            }
+        }
+        
+        // 2. Check against database for overlaps in the same hall
+        for (const show of showToCreate) {
+            const start = new Date(show.showDateTime);
+            const end = new Date(start.getTime() + runtimeMinutes * 60000);
+            
+            const overlappingShows = await Show.find({
+                hall: show.hall,
+                showDateTime: {
+                    $gte: new Date(start.getTime() - 240 * 60000), // Check shows starting up to 4 hours before
+                    $lte: new Date(start.getTime() + 240 * 60000)  // And up to 4 hours after
+                }
+            }).populate('movie');
+            
+            for (const overlappingShow of overlappingShows) {
+                const existingStart = new Date(overlappingShow.showDateTime);
+                const existingRuntime = overlappingShow.movie?.runtime || 120;
+                const existingEnd = new Date(existingStart.getTime() + existingRuntime * 60000);
+                
+                if (start < existingEnd && end > existingStart) {
+                    const timeStr = start.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+                    return res.status(400).json({ 
+                        success: false, 
+                        message: `Cannot add show at ${timeStr}. ${show.hall} is already occupied by '${overlappingShow.movie?.title || 'another movie'}'.` 
+                    });
+                }
+            }
+        }
+
         await Show.insertMany(showToCreate);
         res.json({ success: true, message: 'Show added successfully' });
     } catch (error) {
