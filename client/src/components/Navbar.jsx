@@ -8,9 +8,21 @@ const Navbar = () => {
   const navigate = useNavigate()
   const [isMenuOpen, setIsMenuOpen] = React.useState(false)
   const [isScrolled, setIsScrolled] = React.useState(false)
+  const [isProfileOpen, setIsProfileOpen] = React.useState(false)
   const { user, setToken } = useAppContext()
   const [isSearchOpen, setIsSearchOpen] = React.useState(false)
   const [searchValue, setSearchValue] = React.useState('')
+  const profileRef = React.useRef(null)
+
+  React.useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (profileRef.current && !profileRef.current.contains(event.target)) {
+        setIsProfileOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
 
   React.useEffect(() => {
     const handleScroll = () => {
@@ -34,9 +46,8 @@ const Navbar = () => {
 
   const handleLogout = () => {
     localStorage.removeItem('token')
-    setToken(null)
-    setIsMenuOpen(false)
-    navigate('/')
+    localStorage.removeItem('prince-cinema-favorites')
+    window.location.href = '/'
   }
 
   return (
@@ -121,30 +132,42 @@ const Navbar = () => {
           </div>
 
           {user ? (
-            <>
-              <div
-                className={`inline-flex items-center gap-2 rounded-full border px-4 py-2.5 text-sm font-semibold text-emerald-300 backdrop-blur-xl ${
+            <div className="relative" ref={profileRef}>
+              <button
+                onClick={() => setIsProfileOpen(!isProfileOpen)}
+                className={`inline-flex items-center gap-2 rounded-full border px-4 py-2.5 text-sm font-semibold text-emerald-300 backdrop-blur-xl transition hover:border-emerald-400/50 ${
                   isScrolled
                     ? 'border-emerald-400/25 bg-emerald-500/10'
                     : 'border-emerald-400/20 bg-emerald-500/8'
                 }`}
               >
                 <BadgeCheck className="h-4.5 w-4.5 fill-emerald-400/20 text-emerald-400" />
-                <span>{user.firstName || 'Logged In'}</span>
-              </div>
-
-              <button
-                onClick={handleLogout}
-                className={`inline-flex items-center gap-2 rounded-full border px-4 py-2.5 text-sm font-semibold text-white backdrop-blur-xl transition hover:border-red-400/50 hover:text-red-300 ${
-                  isScrolled
-                    ? 'border-white/12 bg-white/12 supports-[backdrop-filter]:bg-white/10'
-                    : 'border-white/10 bg-white/10 supports-[backdrop-filter]:bg-white/8'
-                }`}
-              >
-                <LogOut className="h-4 w-4" />
-                Logout
+                <span>{user.firstName || 'Profile'}</span>
               </button>
-            </>
+
+              {isProfileOpen && (
+                <div className="absolute right-0 top-full mt-2 w-64 rounded-2xl border border-white/10 bg-[#131927] p-5 shadow-[0_10px_40px_rgba(0,0,0,0.5)] backdrop-blur-xl">
+                  <div className="flex flex-col items-center border-b border-white/10 pb-4">
+                    <div className="flex h-16 w-16 items-center justify-center rounded-full bg-emerald-500/20 text-2xl font-bold text-emerald-400">
+                      {(user.firstName?.[0] || 'U').toUpperCase()}
+                    </div>
+                    <p className="mt-3 font-semibold text-white">
+                      {user.firstName} {user.lastName}
+                    </p>
+                    <p className="mt-1 text-xs text-white/60">{user.email}</p>
+                  </div>
+                  <div className="pt-4">
+                    <button
+                      onClick={handleLogout}
+                      className="flex w-full items-center justify-center gap-2 rounded-xl bg-red-500/10 py-2.5 text-sm font-semibold text-red-400 transition hover:bg-red-500/20"
+                    >
+                      <LogOut className="h-4 w-4" />
+                      Logout
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
           ) : (
             <button
               onClick={() => navigate('/login')}
@@ -204,20 +227,26 @@ const Navbar = () => {
             ))}
 
             {user ? (
-              <>
-                <div className="mt-2 inline-flex w-fit items-center gap-2 rounded-full border border-emerald-400/25 bg-emerald-500/10 px-4 py-2 text-sm font-semibold text-emerald-300">
-                  <BadgeCheck className="h-4 w-4 text-emerald-400" />
-                  <span>{user.firstName || 'Logged In'}</span>
+              <div className="mt-4 flex flex-col gap-4 border-t border-white/10 pt-4">
+                <div className="flex items-center gap-4">
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-emerald-500/20 text-xl font-bold text-emerald-400">
+                    {(user.firstName?.[0] || 'U').toUpperCase()}
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="font-semibold text-white">
+                      {user.firstName} {user.lastName}
+                    </span>
+                    <span className="text-xs text-white/60">{user.email}</span>
+                  </div>
                 </div>
-
                 <button
                   onClick={handleLogout}
-                  className="inline-flex w-fit items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm font-semibold text-white transition hover:border-red-400/50 hover:text-red-300"
+                  className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-red-500/10 px-4 py-3 text-sm font-semibold text-red-400 transition hover:bg-red-500/20"
                 >
                   <LogOut className="h-4 w-4" />
                   Logout
                 </button>
-              </>
+              </div>
             ) : (
               <button
                 onClick={() => {

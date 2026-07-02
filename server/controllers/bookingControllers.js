@@ -29,6 +29,8 @@ export const createBooking = async (req, res) => {
       customer,
       movie,
       showId,
+      showDate,
+      showTime,
       selectedSeats,
       total,
     } = req.body;
@@ -51,6 +53,8 @@ export const createBooking = async (req, res) => {
       userId: userId || null,
       customer,
       movie,
+      showDate: showDate || '',
+      showTime: showTime || '',
       seats: selectedSeats.join(", "),
       total,
       bookedAt: new Date().toLocaleString(),

@@ -100,7 +100,14 @@ const BookingsTable = ({ bookings, onDelete }) => {
                 >
                   <td className="px-5 py-4 font-medium text-white">{booking.id || booking._id}</td>
                   <td className="px-5 py-4">{booking.customer}</td>
-                  <td className="px-5 py-4">{booking.movie}</td>
+                  <td className="px-5 py-4">
+                    {booking.movie}
+                    {booking.showDate && booking.showTime && (
+                      <div className="text-xs text-white/45 mt-0.5">
+                        {booking.showDate} {booking.showTime}
+                      </div>
+                    )}
+                  </td>
                   <td className="px-5 py-4">{booking.seats}</td>
                   <td className="px-5 py-4">{booking.total}</td>
                   <td className="px-5 py-4">{booking.bookedAt}</td>

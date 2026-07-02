@@ -14,6 +14,14 @@ const bookingSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    showDate: {
+      type: String,
+      required: false,
+    },
+    showTime: {
+      type: String,
+      required: false,
+    },
     seats: {
       type: String,
       required: true,

@@ -11,6 +11,10 @@ const showSchema = new mongoose.Schema(
             type: Date,
             required: true  
         },  
+        hall: {
+            type: String,
+            default: 'Hall 01'
+        },
         showPrice: {
             type: Number,
             required: true

@@ -152,6 +152,7 @@ export const addShow = async (req, res) => {
             movieTitle,
             title,
             movie: movieName,
+            hall,
             showInput: rawShowInput,
             showPrice,
             date: rawDate,
@@ -200,8 +201,8 @@ export const addShow = async (req, res) => {
             // Movie is in our local list but not yet in DB — create it with local data
             movieData = {
                 ...localMovie,
-                poster_path: localMovie.poster_path || '/images/placeholder.png',
-                backdrop_path: localMovie.backdrop_path || '/images/placeholder.png',
+                poster_path: localMovie.poster_path || '',
+                backdrop_path: localMovie.backdrop_path || '',
                 genres: Array.isArray(localMovie.genres) ? localMovie.genres : [],
                 casts: Array.isArray(localMovie.casts) ? localMovie.casts : [],
                 vote_average: typeof localMovie.vote_average === 'number' ? localMovie.vote_average : 0,
@@ -269,7 +270,7 @@ export const addShow = async (req, res) => {
         }
 
         // If movie exists in DB but has no poster (from old broken saves), patch it from TMDB
-        if (movie && !movie.poster_path && resolvedMovieTitle) {
+        if (movie && (!movie.poster_path || movie.poster_path === '/images/placeholder.png') && resolvedMovieTitle) {
             try {
                 const searchResponse = await axios.get('https://api.themoviedb.org/3/search/movie', {
                     params: { api_key: process.env.TMDB_API_KEY, query: resolvedMovieTitle, page: 1 },
@@ -313,7 +314,7 @@ export const addShow = async (req, res) => {
                 if (!showDate || !time) return;
                 const showDateTime = parseShowDateTime(showDate, time);
                 if (!showDateTime) return;
-                showToCreate.push({ movie: movie._id, showDateTime, showPrice: normalizedShowPrice, occupiedSeats: [] });
+                showToCreate.push({ movie: movie._id, showDateTime, hall: hall || 'Hall 01', showPrice: normalizedShowPrice, occupiedSeats: [] });
             });
         });
 

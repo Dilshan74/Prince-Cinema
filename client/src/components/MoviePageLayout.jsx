@@ -7,92 +7,7 @@ import { assets } from '../assets/assets'
 import { getFavoriteMovies, toggleFavoriteMovie } from '../lib/favorites'
 import { getPublicMovies, getScheduledShows } from '../lib/adminData'
 import { useAppContext } from '../context/AppContext'
-
-const TMDB_IMAGE_BASE = 'https://image.tmdb.org/t/p/original'
-
-// Build a movie card object from a backend show's populated movie data
-const buildMovieFromBackendShow = (show) => {
-  const m = show.movie
-  if (!m || typeof m !== 'object') return null
-  const posterPath = m.poster_path
-  const image = posterPath
-    ? (posterPath.startsWith('http') ? posterPath : `${TMDB_IMAGE_BASE}${posterPath}`)
-    : 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=800&q=80'
-  const releaseYear = m.release_date ? new Date(m.release_date).getFullYear() : new Date().getFullYear()
-  return {
-    _id: String(m._id),
-    title: m.title,
-    year: releaseYear,
-    genres: Array.isArray(m.genres) ? m.genres : ['Drama'],
-    duration: m.runtime || 0,
-    rating: m.vote_average ? String(m.vote_average) : 'TBA',
-    image,
-    language: m.original_language?.toUpperCase() || 'ENGLISH',
-    overview: m.overview || '',
-    casts: m.casts || [],
-    dateOptions: [],
-    timeOptions: [],
-    shows: [],
-  }
-}
-
-// Merge backend shows into a deduplicated movie list
-const mergeBackendShows = (localMovies, backendShows) => {
-  if (!Array.isArray(backendShows) || backendShows.length === 0) return localMovies
-
-  const movieMap = new Map()
-
-  // Start with local movies
-  localMovies.forEach(m => movieMap.set(m._id, { ...m }))
-
-  backendShows.forEach(show => {
-    const m = show.movie
-    if (!m || typeof m !== 'object') return
-    const id = String(m._id)
-    const dt = new Date(show.showDateTime)
-    
-    const day = dt.getDate().toString()
-    const month = dt.toLocaleString('en-US', { month: 'short' })
-    const timeStr = dt.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })
-
-    let existing = movieMap.get(id)
-    if (!existing) {
-      existing = buildMovieFromBackendShow(show)
-      if (!existing) return
-      movieMap.set(id, existing)
-    } else {
-      // Update existing movie — patch image from TMDB if it's the generic fallback
-      const posterPath = m.poster_path
-      if (posterPath && (!existing.image || existing.image.includes('unsplash'))) {
-        existing.image = posterPath.startsWith('http') ? posterPath : `${TMDB_IMAGE_BASE}${posterPath}`
-      }
-      // Update casts if not present
-      if ((!existing.casts || existing.casts.length === 0) && m.casts && m.casts.length > 0) {
-        existing.casts = m.casts
-      }
-    }
-
-    // Add to dateOptions
-    if (!existing.dateOptions) existing.dateOptions = []
-    const hasDate = existing.dateOptions.some(d => d.day === day && d.month === month)
-    if (!hasDate) {
-      existing.dateOptions.push({ day, month })
-    }
-
-    // Add to timeOptions
-    if (!existing.timeOptions) existing.timeOptions = []
-    if (!existing.timeOptions.includes(timeStr)) {
-      existing.timeOptions.push(timeStr)
-      // Sort time options
-      existing.timeOptions.sort()
-    }
-
-    // Add to shows (if needed by other logic)
-    if (!existing.shows.includes(timeStr)) existing.shows.push(timeStr)
-  })
-
-  return Array.from(movieMap.values())
-}
+import { extractMoviesFromShows } from '../lib/movieUtils'
 
 const defaultCastMembers = [
   { id: 'chris-pratt', name: 'Chris Pratt', role: 'Star-Lord', image: 'https://people.com/thmb/7gM4cQZ8gRxJ_u75YJioGjo0zRo=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc():focal(734x399:736x401)/Chris-Pratt-Guardians-01-050323-0a32195605b14891b0bf937cdaf5bf96.jpg' },
@@ -443,10 +358,13 @@ const MoviePageLayout = () => {
     const refreshMovies = () => {
       try {
         const publicMovies = getPublicMovies()
-        // Merge backend shows (with real TMDB posters) into the local movie list
-        const merged = mergeBackendShows(publicMovies, backendShows)
+        const hasBackendShows = Array.isArray(backendShows) && backendShows.length > 0
+        const merged = hasBackendShows ? extractMoviesFromShows(backendShows) : publicMovies
+        
         const updatedFeatured = merged[0] || featuredMovie
-        const updatedRecommended = merged.slice(1).length > 0 ? merged.slice(1) : recommendedMovies
+        const updatedRecommended = hasBackendShows 
+          ? merged.slice(1) 
+          : (merged.slice(1).length > 0 ? merged.slice(1) : recommendedMovies)
 
         setDynamicFeaturedMovie(updatedFeatured)
         setDynamicRecommendedMovies(updatedRecommended)
@@ -508,6 +426,9 @@ const MoviePageLayout = () => {
       if (matchingShow.showPrice) {
         params.append('price', matchingShow.showPrice)
       }
+      if (matchingShow.hall) {
+        params.append('hall', matchingShow.hall)
+      }
     } else {
       const selectedTimeObj = activeTimeOptions.find(t => t.time === selectedTime)
       if (selectedTimeObj && selectedTimeObj.price) {
@@ -535,11 +456,15 @@ const MoviePageLayout = () => {
             }`}
           >
             <div className="mx-auto w-full max-w-[280px]">
-              <div className="aspect-square overflow-hidden rounded-2xl border border-white/10 bg-[#131927] shadow-[0_18px_50px_rgba(0,0,0,0.35)]">
+              <div className="aspect-[2/3] overflow-hidden rounded-2xl border border-white/10 bg-[#131927] shadow-[0_18px_50px_rgba(0,0,0,0.35)]">
                 <img
                   src={selectedMovie.image}
                   alt={selectedMovie.title}
                   className="h-full w-full object-cover"
+                  onError={(e) => {
+                    e.target.onerror = null; 
+                    e.target.src = 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=800&q=80';
+                  }}
                 />
               </div>
             </div>
@@ -702,7 +627,7 @@ const MoviePageLayout = () => {
 
             <div
               className={`overflow-hidden transition-all duration-500 ease-in-out ${
-                showAllMovies ? 'mt-6 max-h-[900px] opacity-100' : 'mt-0 max-h-0 opacity-0'
+                showAllMovies ? 'mt-6 max-h-[5000px] opacity-100' : 'mt-0 max-h-0 opacity-0'
               }`}
             >
               <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-4">

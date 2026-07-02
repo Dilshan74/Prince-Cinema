@@ -46,7 +46,7 @@ const halls = {
     date: 'Fri, Apr 02',
     availableTickets: '05',
     reservedSeats: new Set(['A3', 'A4', 'B5', 'B6', 'C7', 'D8', 'E6']),
-    defaultSelectedSeats: ['E8'],
+    defaultSelectedSeats: [],
   },
   hall2: {
     id: 'hall2',
@@ -56,7 +56,7 @@ const halls = {
     date: 'Fri, Apr 02',
     availableTickets: '03',
     reservedSeats: new Set(['A6', 'A7', 'B7', 'B8', 'C6', 'C7', 'C8', 'D7', 'F8']),
-    defaultSelectedSeats: ['E8'],
+    defaultSelectedSeats: [],
   },
 }
 
@@ -103,7 +103,14 @@ const SeatLayout = () => {
   const selectedDate = searchParams.get('date') || 'Today'
   const selectedTime = searchParams.get('time') || '7:30 PM'
   const showId = searchParams.get('showId') || null
-  const [selectedHallId, setSelectedHallId] = React.useState('hall1')
+  const hallQuery = searchParams.get('hall') || null
+
+  const queryHallId = React.useMemo(() => {
+    if (!hallQuery) return null
+    return Object.keys(halls).find(key => halls[key].title === hallQuery || halls[key].label === hallQuery || halls[key].id === hallQuery) || null
+  }, [hallQuery])
+
+  const [selectedHallId, setSelectedHallId] = React.useState(queryHallId || 'hall1')
   const [selectedSeatsByHall, setSelectedSeatsByHall] = React.useState(() => ({
     hall1: halls.hall1.defaultSelectedSeats,
     hall2: halls.hall2.defaultSelectedSeats,
@@ -139,13 +146,6 @@ const SeatLayout = () => {
 
     setSelectedSeatsByHall((currentState) => {
       const currentSeats = currentState[selectedHallId]
-      const maxTickets = parseInt(activeHall.availableTickets, 10)
-      const isSelecting = !currentSeats.includes(seatId)
-
-      if (isSelecting && currentSeats.length >= maxTickets) {
-        toast.error(`You can only select up to ${maxTickets} seats`)
-        return currentState
-      }
 
       return {
         ...currentState,
@@ -165,16 +165,17 @@ const SeatLayout = () => {
     const ticketPrice = Number(searchParams.get('price')) || 1200
     const total = `LKR ${selectedSeats.length * ticketPrice}`
     
-    // Create the booking data matching backend schema
     const bookingData = {
       userId: user?._id || null,
       customer: user?.name || user?.username || 'Guest User',
       movie: selectedMovieTitle,
       showId: showId,
+      showDate: selectedDate,
+      showTime: selectedTime,
       selectedSeats: selectedSeats, // Backend expects an array
       seats: selectedSeats.join(', '), // Frontend fallback/list expects a string
       total,
-      bookedAt: new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }),
+      bookedAt: new Date().toLocaleString('en-US'),
       status: 'Confirmed',
     }
 
@@ -202,8 +203,10 @@ const SeatLayout = () => {
 
         <div className="relative mx-auto max-w-6xl">
           <div className="mb-8 flex flex-wrap items-center justify-center gap-3">
-            {Object.values(halls).map((hall) => {
-              const isActive = hall.id === selectedHallId
+            {Object.values(halls)
+              .filter((hall) => !queryHallId || hall.id === queryHallId)
+              .map((hall) => {
+                const isActive = hall.id === selectedHallId
 
               return (
                 <button
@@ -227,15 +230,18 @@ const SeatLayout = () => {
               <p className="text-[10px] uppercase tracking-[0.28em] text-white/45">Auditorium</p>
               <h2 className="mt-2 text-lg font-semibold">{activeHall.title}</h2>
 
-              <div className="mt-5 rounded-2xl border border-[#5d1d2d] bg-[#2b0f18]/70 p-3">
-                <div className="flex items-center gap-3">
-                  <div className="rounded-xl bg-[#ff5d7a]/20 p-2 text-[#ff6f89]">
-                    <Ticket className="h-4 w-4" />
-                  </div>
-                  <div>
-                    <p className="text-xs text-white/55">Available Tickets (Max per booking)</p>
-                    <p className="text-xl font-semibold">{activeHall.availableTickets}</p>
-                  </div>
+              <div className="mt-5 grid grid-cols-3 gap-2">
+                <div className="rounded-xl border border-white/10 bg-white/[0.04] py-3 text-center shadow-inner">
+                  <p className="text-[10px] uppercase tracking-wider text-white/50">Available</p>
+                  <p className="mt-1 text-xl font-semibold text-white">{98 - reservedSeats.size}</p>
+                </div>
+                <div className="rounded-xl border border-[#7d2234]/30 bg-[#3f121d]/40 py-3 text-center shadow-inner">
+                  <p className="text-[10px] uppercase tracking-wider text-[#ff5d7a]/70">Reserved</p>
+                  <p className="mt-1 text-xl font-semibold text-[#ff5d7a]">{reservedSeats.size}</p>
+                </div>
+                <div className="rounded-xl border border-[#ff5d7a]/40 bg-[#ff5d7a]/15 py-3 text-center shadow-[0_0_15px_rgba(255,93,122,0.15)]">
+                  <p className="text-[10px] uppercase tracking-wider text-[#ff5d7a]">Selected</p>
+                  <p className="mt-1 text-xl font-semibold text-white">{selectedSeats.length}</p>
                 </div>
               </div>
 

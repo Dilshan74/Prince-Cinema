@@ -31,11 +31,15 @@ const MovieCard = ({
       className="group rounded-2xl border border-[#24324a] bg-[#182235] p-2.5 text-white shadow-[0_14px_34px_rgba(0,0,0,0.24)] transition duration-300 hover:-translate-y-1 hover:border-[#314465] cursor-pointer"
       onClick={handleCardClick}
     >
-      <div className="overflow-hidden rounded-[10px]">
+      <div className="aspect-[2/3] w-full overflow-hidden rounded-[10px]">
         <img
           src={movie.image}
           alt={movie.title}
-          className="h-48 w-full rounded-[10px] object-cover transition duration-500 group-hover:scale-105"
+          className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+          onError={(e) => {
+            e.target.onerror = null; 
+            e.target.src = 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=800&q=80';
+          }}
         />
       </div>
 

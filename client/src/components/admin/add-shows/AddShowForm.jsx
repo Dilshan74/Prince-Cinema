@@ -82,6 +82,7 @@ const AddShowForm = ({ onShowAdded }) => {
         '/api/show/add',
         {
           movieTitle: formData.movie.trim(),
+          hall: formData.hall,
           showInput,
           showPrice: Number(formData.price) || 1200,
         },
@@ -210,7 +211,6 @@ const AddShowForm = ({ onShowAdded }) => {
             >
               <option className="bg-[#08090f]" value="Hall 01">Hall 01</option>
               <option className="bg-[#08090f]" value="Hall 02">Hall 02</option>
-              <option className="bg-[#08090f]" value="Hall 03">Hall 03</option>
             </select>
           </div>
         </AddShowField>

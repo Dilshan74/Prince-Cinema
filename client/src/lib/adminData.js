@@ -507,9 +507,11 @@ export const addBooking = (booking) => {
     userId: booking.userId || null,
     customer: booking.customer || 'Guest User',
     movie: booking.movie || 'Unknown movie',
+    showDate: booking.showDate || '',
+    showTime: booking.showTime || '',
     seats: booking.seats || '',
     total: booking.total || 'LKR 0',
-    bookedAt: booking.bookedAt || new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }),
+    bookedAt: booking.bookedAt || new Date().toLocaleString('en-US'),
     status: booking.status || 'Confirmed',
   };
 

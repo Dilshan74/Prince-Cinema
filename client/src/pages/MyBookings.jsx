@@ -60,6 +60,11 @@ const MyBookings = () => {
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <p className="text-sm font-semibold text-white">{booking.movie}</p>
+                    {booking.showDate && booking.showTime && (
+                      <p className="mt-1 text-xs text-[#ff5d7a]">
+                        Show: {booking.showDate} at {booking.showTime}
+                      </p>
+                    )}
                     <p className="mt-1 text-sm text-white/60">Seats: {booking.seats}</p>
                   </div>
                   <span className="rounded-full bg-[#ff5d7a]/20 px-3 py-1 text-xs font-medium text-[#ff9aad]">
