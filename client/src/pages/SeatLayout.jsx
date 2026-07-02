@@ -265,7 +265,7 @@ const SeatLayout = () => {
               </div>
             </aside>
 
-            <div className="rounded-[28px] border border-white/8 bg-[radial-gradient(circle_at_center,rgba(255,72,111,0.14),rgba(6,6,10,0)_44%),linear-gradient(180deg,rgba(255,255,255,0.03),rgba(255,255,255,0.01))] px-4 py-8 shadow-[0_18px_60px_rgba(0,0,0,0.42)] backdrop-blur-sm sm:px-6 lg:px-10">
+            <div className="min-w-0 rounded-[28px] border border-white/8 bg-[radial-gradient(circle_at_center,rgba(255,72,111,0.14),rgba(6,6,10,0)_44%),linear-gradient(180deg,rgba(255,255,255,0.03),rgba(255,255,255,0.01))] px-4 py-8 shadow-[0_18px_60px_rgba(0,0,0,0.42)] backdrop-blur-sm sm:px-6 lg:px-10">
               <div className="mx-auto max-w-3xl text-center">
                 <p className="text-xl font-medium tracking-wide text-white/90">Select Your Seat</p>
 
