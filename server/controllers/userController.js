@@ -4,7 +4,7 @@ import booking from '../models/booking.js';
 //API Controller function to get user bookings
 export const getUserBookings = async (req, res) => {
     try {
-        const { user } = req.auth().userId;
+        const user = req.userId; // Provided by verifyToken middleware
         const bookings = await booking.find({ user }).populate({path: 'show'}).populate({path: 'movie'}).sort({ createdAt: -1 });
 
         res.json({ success: true, bookings });

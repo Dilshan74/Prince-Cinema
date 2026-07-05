@@ -25,7 +25,7 @@ const checkSeatAvailability = async (showId, selectedSeats) => {
 export const createBooking = async (req, res) => {
   try {
     const {
-      userId,
+      userId: bodyUserId, // We can still accept it but override with req.userId if available
       customer,
       movie,
       showId,
@@ -34,6 +34,15 @@ export const createBooking = async (req, res) => {
       selectedSeats,
       total,
     } = req.body;
+
+    const actualUserId = req.userId || bodyUserId || null;
+
+    if (!actualUserId) {
+      return res.status(401).json({
+        success: false,
+        message: "User must be logged in to create a booking.",
+      });
+    }
 
     let available = true;
 
@@ -50,7 +59,7 @@ export const createBooking = async (req, res) => {
     }
 
     const booking = await Booking.create({
-      userId: userId || null,
+      userId: actualUserId,
       customer,
       movie,
       showDate: showDate || '',

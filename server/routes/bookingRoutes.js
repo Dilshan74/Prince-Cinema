@@ -6,10 +6,11 @@ import {
   getGuestBookings,
   getOccupiedSeats,
 } from "../controllers/bookingControllers.js";
+import { verifyToken } from "../middleware/auth.js";
 
 const bookingRoutes = express.Router();
 
-bookingRoutes.post("/create", createBooking);
+bookingRoutes.post("/create", verifyToken, createBooking);
 bookingRoutes.get("/all", getAllBookings);
 bookingRoutes.get("/user/:userId", getUserBookings);
 bookingRoutes.get("/guest", getGuestBookings);

@@ -528,9 +528,14 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || '';
 
 export const createBookingAPI = async (booking, baseUrl = API_BASE_URL) => {
   try {
+    const token = localStorage.getItem('token');
+    const headers = { 'Content-Type': 'application/json' };
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
     const res = await fetch(`${baseUrl}/api/booking/create`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       body: JSON.stringify(booking),
     });
     if (!res.ok) throw new Error('Failed to create booking');

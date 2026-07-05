@@ -157,6 +157,12 @@ const SeatLayout = () => {
   }
 
   const handleSubmitBooking = async () => {
+    if (!user) {
+      toast.error('Please log in to create a booking.')
+      navigate('/login')
+      return
+    }
+
     if (selectedSeats.length === 0) {
       toast.error('Please select at least one seat before submitting.')
       return
