@@ -348,7 +348,7 @@ export const getMoviePosterImage = (title) => {
     return 'https://hdtoday.at/images/posters/movies/scream-7-2026.webp'
   }
 
-  return "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='800' height='1200' viewBox='0 0 800 1200'%3E%3Crect width='800' height='1200' fill='%231a2235'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' font-size='40' fill='%234a5d85'%3ENo Image%3C/text%3E%3C/svg%3E"
+  return "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='800' height='1200' viewBox='0 0 800 1200'%3E%3Crect width='800' height='1200' fill='%231a2235'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' font-size='120' fill='%234a5d85'%3ENo Image%3C/text%3E%3C/svg%3E"
 }
 
 const buildDynamicMovie = (title) => {
@@ -600,6 +600,25 @@ export const getGuestBookingsAPI = async (baseUrl = API_BASE_URL) => {
   } catch (error) {
     console.error('Error fetching guest bookings via API:', error);
     return [];
+  }
+};
+
+export const deleteBookingAPI = async (bookingId, baseUrl = API_BASE_URL) => {
+  try {
+    const token = localStorage.getItem('token');
+    const headers = { 'Content-Type': 'application/json' };
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+    const res = await fetch(`${baseUrl}/api/booking/delete/${bookingId}`, {
+      method: 'DELETE',
+      headers,
+    });
+    if (!res.ok) throw new Error('Failed to delete booking');
+    return await res.json();
+  } catch (error) {
+    console.error('Error deleting booking via API:', error);
+    return null;
   }
 };
 

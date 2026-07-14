@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import AdminPageHeader from '../../components/admin/AdminPageHeader'
 import BookingsTable from '../../components/admin/BookingsTable'
-import { getBookingRows, getAllBookingsAPI } from '../../lib/adminData'
+import { getBookingRows, getAllBookingsAPI, deleteBookingAPI } from '../../lib/adminData'
 import toast from 'react-hot-toast'
 
 const BOOKINGS_STORAGE_KEY = 'prince-cinema-bookings'
@@ -33,7 +33,12 @@ const ListBookings = () => {
     }
   }, [])
 
-  const handleDelete = (bookingId) => {
+  const handleDelete = async (bookingId) => {
+    // Delete from backend if it's a valid ID format (not just local placeholder)
+    if (bookingId) {
+      await deleteBookingAPI(bookingId);
+    }
+    
     // Remove from local state immediately
     setBookings(prev => {
       const updated = prev.filter(b => (b.id || b._id) !== bookingId)

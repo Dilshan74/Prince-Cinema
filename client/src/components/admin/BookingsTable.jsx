@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { TicketCheck, Trash2, AlertTriangle } from 'lucide-react'
 import { getMoviePosterImage } from '../../lib/adminData'
+import { useAppContext } from '../../context/AppContext'
 
 const bookingStatusClassNames = {
   Confirmed: 'bg-emerald-500/15 text-emerald-300',
@@ -50,6 +51,7 @@ const DeleteConfirmModal = ({ booking, onConfirm, onCancel }) => {
 }
 
 const BookingsTable = ({ bookings, onDelete }) => {
+  const { shows } = useAppContext()
   const [confirmBooking, setConfirmBooking] = useState(null)
 
   const handleConfirm = () => {
@@ -105,12 +107,12 @@ const BookingsTable = ({ bookings, onDelete }) => {
                     <div className="flex items-center gap-3">
                       <div className="h-12 w-12 overflow-hidden rounded-xl bg-slate-900/70">
                         <img
-                          src={booking.image || booking.poster || booking.movieImage || getMoviePosterImage(booking.movie)}
+                          src={booking.image || booking.poster || booking.movieImage || (shows?.find(s => s.movie?.title === booking.movie)?.movie?.poster_path ? `https://image.tmdb.org/t/p/w92${shows.find(s => s.movie?.title === booking.movie).movie.poster_path.startsWith('/') ? '' : '/'}${shows.find(s => s.movie?.title === booking.movie).movie.poster_path}` : getMoviePosterImage(booking.movie))}
                           alt={booking.movie}
                           className="h-full w-full object-cover"
                           onError={(e) => {
                             e.target.onerror = null; 
-                            e.target.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='800' height='1200' viewBox='0 0 800 1200'%3E%3Crect width='800' height='1200' fill='%231a2235'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' font-size='40' fill='%234a5d85'%3ENo Image%3C/text%3E%3C/svg%3E";
+                            e.target.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='800' height='1200' viewBox='0 0 800 1200'%3E%3Crect width='800' height='1200' fill='%231a2235'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' font-size='120' fill='%234a5d85'%3ENo Image%3C/text%3E%3C/svg%3E";
                           }}
                         />
                       </div>
