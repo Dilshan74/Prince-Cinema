@@ -325,15 +325,30 @@ export const addScheduledShow = (show) => {
 
 const normalizeMovieTitle = (title) => title?.toLowerCase().trim() || ''
 
-const getMoviePosterImage = (title) => {
+export const getMoviePosterImage = (title) => {
   const normalizedTitle = normalizeMovieTitle(title)
-  const isScream7Title = normalizedTitle.includes('scream') && (normalizedTitle.includes('7') || normalizedTitle.includes('seven') || normalizedTitle.includes('vii'))
 
+  // First, try to find the image in the public catalog (has real TMDB URLs)
+  const catalogMatch = publicMovieCatalog.find(m => normalizeMovieTitle(m.title) === normalizedTitle)
+  if (catalogMatch?.image) {
+    return catalogMatch.image
+  }
+
+  // Partial match for minor title differences
+  const partialMatch = publicMovieCatalog.find(m => {
+    const cat = normalizeMovieTitle(m.title)
+    return cat.includes(normalizedTitle) || normalizedTitle.includes(cat)
+  })
+  if (partialMatch?.image) {
+    return partialMatch.image
+  }
+
+  const isScream7Title = normalizedTitle.includes('scream') && (normalizedTitle.includes('7') || normalizedTitle.includes('seven') || normalizedTitle.includes('vii'))
   if (isScream7Title) {
     return 'https://hdtoday.at/images/posters/movies/scream-7-2026.webp'
   }
 
-  return 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=800&q=80'
+  return "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='800' height='1200' viewBox='0 0 800 1200'%3E%3Crect width='800' height='1200' fill='%231a2235'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' font-size='40' fill='%234a5d85'%3ENo Image%3C/text%3E%3C/svg%3E"
 }
 
 const buildDynamicMovie = (title) => {
@@ -433,6 +448,7 @@ const defaultBookings = [
     userId: null,
     customer: 'Ishara Perera',
     movie: 'Deadpool & Wolverine',
+    image: getMoviePosterImage('Deadpool & Wolverine'),
     seats: 'F4, F5',
     total: 'LKR 2,400',
     bookedAt: '09:12 AM',
@@ -442,6 +458,7 @@ const defaultBookings = [
     id: 'BK-2046',
     customer: 'Nethmi Silva',
     movie: 'Avatar: The Way of Water',
+    image: getMoviePosterImage('Avatar: The Way of Water'),
     seats: 'C2, C3, C4',
     total: 'LKR 4,350',
     bookedAt: '10:20 AM',
@@ -451,6 +468,7 @@ const defaultBookings = [
     id: 'BK-2047',
     customer: 'Kavindu Fernando',
     movie: 'Kung Fu Panda 4',
+    image: getMoviePosterImage('Kung Fu Panda 4'),
     seats: 'H8, H9',
     total: 'LKR 2,600',
     bookedAt: '11:04 AM',
@@ -461,6 +479,7 @@ const defaultBookings = [
     userId: null,
     customer: 'Dinara Jayasekara',
     movie: 'Mission: Impossible - Dead Reckoning Part One',
+    image: getMoviePosterImage('Mission: Impossible - Dead Reckoning Part One'),
     seats: 'B1, B2',
     total: 'LKR 3,000',
     bookedAt: '11:41 AM',

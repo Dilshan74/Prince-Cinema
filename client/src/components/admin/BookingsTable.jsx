@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { TicketCheck, Trash2, AlertTriangle } from 'lucide-react'
+import { getMoviePosterImage } from '../../lib/adminData'
 
 const bookingStatusClassNames = {
   Confirmed: 'bg-emerald-500/15 text-emerald-300',
@@ -101,12 +102,27 @@ const BookingsTable = ({ bookings, onDelete }) => {
                   <td className="px-5 py-4 font-medium text-white">{booking.id || booking._id}</td>
                   <td className="px-5 py-4">{booking.customer}</td>
                   <td className="px-5 py-4">
-                    {booking.movie}
-                    {booking.showDate && booking.showTime && (
-                      <div className="text-xs text-white/45 mt-0.5">
-                        {booking.showDate} {booking.showTime}
+                    <div className="flex items-center gap-3">
+                      <div className="h-12 w-12 overflow-hidden rounded-xl bg-slate-900/70">
+                        <img
+                          src={booking.image || booking.poster || booking.movieImage || getMoviePosterImage(booking.movie)}
+                          alt={booking.movie}
+                          className="h-full w-full object-cover"
+                          onError={(e) => {
+                            e.target.onerror = null; 
+                            e.target.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='800' height='1200' viewBox='0 0 800 1200'%3E%3Crect width='800' height='1200' fill='%231a2235'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' font-size='40' fill='%234a5d85'%3ENo Image%3C/text%3E%3C/svg%3E";
+                          }}
+                        />
                       </div>
-                    )}
+                      <div>
+                        <p className="font-medium text-white">{booking.movie}</p>
+                        {booking.showDate && booking.showTime && (
+                          <div className="text-xs text-white/45 mt-0.5">
+                            {booking.showDate} {booking.showTime}
+                          </div>
+                        )}
+                      </div>
+                    </div>
                   </td>
                   <td className="px-5 py-4">{booking.seats}</td>
                   <td className="px-5 py-4">{booking.total}</td>

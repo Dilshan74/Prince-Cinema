@@ -1,12 +1,7 @@
 import React, { useState } from 'react'
 import { CircleDot, Trash2, X, AlertTriangle } from 'lucide-react'
+import { getMoviePosterImage } from '../../lib/adminData'
 
-const statusClassNames = {
-  Open: 'bg-emerald-500/15 text-emerald-300',
-  Filling: 'bg-amber-500/15 text-amber-300',
-  'Almost Full': 'bg-rose-500/15 text-rose-300',
-  Confirmed: 'bg-emerald-500/15 text-emerald-300',
-}
 
 const formatDateTime = (dt) => {
   if (!dt) return '—'
@@ -63,6 +58,25 @@ const DeleteConfirmModal = ({ show, onConfirm, onCancel }) => {
 
 const ShowsTable = ({ shows, loading, onDelete }) => {
   const [confirmShow, setConfirmShow] = useState(null)
+
+  const getShowPosterSrc = (show, movieTitle) => {
+    const posterPath = show.movie?.poster_path
+    const validPosterPath = posterPath && posterPath !== '/images/placeholder.png'
+    
+    if (validPosterPath) {
+      if (posterPath.startsWith('http')) {
+        // If it's a localhost URL, try to replace it with the current origin to work across devices
+        if (posterPath.includes('localhost')) {
+          const url = new URL(posterPath)
+          return `${window.location.protocol}//${window.location.hostname}:${url.port}${url.pathname}`
+        }
+        return posterPath
+      }
+      return `https://image.tmdb.org/t/p/w92${posterPath.startsWith('/') ? '' : '/'}${posterPath}`
+    }
+    
+    return getMoviePosterImage(movieTitle)
+  }
 
   const handleDeleteClick = (show) => {
     setConfirmShow(show)
@@ -129,13 +143,15 @@ const ShowsTable = ({ shows, loading, onDelete }) => {
                     >
                       <td className="px-5 py-4">
                         <div className="flex items-center gap-3">
-                          {show.movie?.poster_path && (
-                            <img
-                              src={`https://image.tmdb.org/t/p/w92${show.movie.poster_path}`}
-                              alt={movieTitle}
-                              className="h-10 w-7 rounded object-cover flex-shrink-0"
-                            />
-                          )}
+                          <img
+                            src={getShowPosterSrc(show, movieTitle)}
+                            alt={movieTitle}
+                            className="h-10 w-7 rounded object-cover flex-shrink-0"
+                            onError={(e) => {
+                              e.target.onerror = null; 
+                              e.target.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='800' height='1200' viewBox='0 0 800 1200'%3E%3Crect width='800' height='1200' fill='%231a2235'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' font-size='40' fill='%234a5d85'%3ENo Image%3C/text%3E%3C/svg%3E";
+                            }}
+                          />
                           <span className="font-medium text-white">{movieTitle}</span>
                         </div>
                       </td>

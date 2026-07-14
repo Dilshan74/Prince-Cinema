@@ -8,9 +8,22 @@ export const buildMovieFromBackendShow = (show) => {
   const posterPath = m.poster_path
   const isValidPoster = posterPath && posterPath !== '/images/placeholder.png'
   
-  let image = 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=800&q=80'
+  let image = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='800' height='1200' viewBox='0 0 800 1200'%3E%3Crect width='800' height='1200' fill='%231a2235'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' font-size='40' fill='%234a5d85'%3ENo Image%3C/text%3E%3C/svg%3E"
   if (isValidPoster) {
-    image = posterPath.startsWith('http') ? posterPath : `${TMDB_IMAGE_BASE}${posterPath}`
+    if (posterPath.startsWith('http')) {
+      if (posterPath.includes('localhost')) {
+        try {
+          const url = new URL(posterPath);
+          image = `${window.location.protocol}//${window.location.hostname}:${url.port}${url.pathname}`;
+        } catch (e) {
+          image = posterPath;
+        }
+      } else {
+        image = posterPath;
+      }
+    } else {
+      image = `${TMDB_IMAGE_BASE}${posterPath.startsWith('/') ? '' : '/'}${posterPath}`;
+    }
   } else {
     const localMovies = getPublicMovies()
     const local = localMovies.find(lm => lm.title?.trim().toLowerCase() === m.title?.trim().toLowerCase())
